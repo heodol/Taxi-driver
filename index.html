@@ -293,7 +293,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js"
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js"
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js"
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyCHbaQs-SgUIgx59xbwZJNJE_DTjoCKLUc",
@@ -319,6 +319,8 @@ window.loginWithGoogle = async () => {
   catch(e) { toast('로그인 실패: ' + e.message) }
 }
 window.logout = async () => {
+  if(unsubRecords) unsubRecords()
+  if(unsubGoals) unsubGoals()
   await signOut(auth)
   currentUser = null
   cachedRecords = []
@@ -349,20 +351,38 @@ function setSyncing(v) {
   dot.className = 'sync-dot ' + (v ? 'syncing' : 'synced')
 }
 
-async function loadAllData() {
+let unsubRecords = null
+let unsubGoals = null
+
+function startRealtimeSync(uid) {
+  // 기존 리스너 해제
+  if(unsubRecords) unsubRecords()
+  if(unsubGoals) unsubGoals()
+
   setSyncing(true)
-  try {
-    const uid = currentUser.uid
-    // 레코드
-    const rSnap = await getDocs(collection(db, 'users', uid, 'records'))
+
+  // 레코드 실시간 리스너
+  unsubRecords = onSnapshot(collection(db, 'users', uid, 'records'), snap => {
     cachedRecords = []
-    rSnap.forEach(d => cachedRecords.push(d.data()))
+    snap.forEach(d => cachedRecords.push(d.data()))
     cachedRecords.sort((a,b) => b.date.localeCompare(a.date))
-    // 목표
-    const gSnap = await getDoc(doc(db, 'users', uid, 'meta', 'goals'))
-    cachedGoals = gSnap.exists() ? gSnap.data() : {}
-  } catch(e) { toast('데이터 로드 실패') }
-  setSyncing(false)
+    setSyncing(false)
+    // 현재 화면 갱신
+    const activeScreen = document.querySelector('.screen.on')?.id?.replace('s-','')
+    if(activeScreen === 'home') renderHome()
+    if(activeScreen === 'list') renderList()
+    if(activeScreen === 'stats') renderStats()
+    if(activeScreen === 'goal') renderGoal()
+  }, e => { toast('동기화 오류'); setSyncing(false) })
+
+  // 목표 실시간 리스너
+  unsubGoals = onSnapshot(doc(db, 'users', uid, 'meta', 'goals'), snap => {
+    cachedGoals = snap.exists() ? snap.data() : {}
+  })
+}
+
+async function loadAllData() {
+  startRealtimeSync(currentUser.uid)
 }
 
 // ── 저장 ──────────────────────────────────────────
@@ -414,6 +434,7 @@ window.go = function(s) {
   document.getElementById('s-'+s).classList.add('on')
   document.getElementById('header-title').textContent = HEADERS[s]
   if(s==='home') renderHome()
+  if(s==='input') { const d=document.getElementById('i-date'); if(!d.value) d.value=today(); loadExistingRecord(d.value) }
   if(s==='list') renderList()
   if(s==='stats') renderStats()
   if(s==='goal') renderGoal()
@@ -456,7 +477,23 @@ function renderHome() {
 }
 
 // ── 입력 ──────────────────────────────────────────
+function loadExistingRecord(date) {
+  const rec = getRecords().find(r => r.date === date)
+  document.getElementById('i-kakao').value = rec ? rec.kakao||'' : ''
+  document.getElementById('i-card').value  = rec ? rec.card||''  : ''
+  document.getElementById('i-cash').value  = rec ? rec.cash||''  : ''
+  document.getElementById('i-memo').value  = rec ? rec.memo||''  : ''
+  const k=+(rec?.kakao||0), c=+(rec?.card||0), h=+(rec?.cash||0)
+  document.getElementById('i-total').textContent = fmt(k+c+h)+'원'
+}
+
 document.getElementById('i-date').value = today()
+loadExistingRecord(today())
+
+document.getElementById('i-date').addEventListener('change', function() {
+  loadExistingRecord(this.value)
+})
+
 ;['i-kakao','i-card','i-cash'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   const k=+document.getElementById('i-kakao').value||0
   const c=+document.getElementById('i-card').value||0
@@ -473,12 +510,8 @@ window.saveRecord = async function() {
   if(!kakao&&!card&&!cash){toast('금액을 입력해주세요');return}
   const rec={date,kakao,card,cash,memo,total:kakao+card+cash}
   await saveRecordToDB(rec)
-  document.getElementById('i-kakao').value=''
-  document.getElementById('i-card').value=''
-  document.getElementById('i-cash').value=''
-  document.getElementById('i-memo').value=''
-  document.getElementById('i-total').textContent='0원'
   toast('저장됐습니다!')
+  setTimeout(()=>go('home'), 800)
 }
 
 // ── 내역 ──────────────────────────────────────────
