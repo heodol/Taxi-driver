@@ -408,6 +408,14 @@ async function saveGoalsToDB(goals) {
   setSyncing(false)
 }
 
+// 포그라운드 복귀시 실시간 재연결
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && currentUser) {
+    setSyncing(true)
+    startRealtimeSync(currentUser.uid)
+  }
+})
+
 // ── 유틸 ──────────────────────────────────────────
 const DAY_NAMES = ['일','월','화','수','목','금','토']
 const WD_DOWS = [1,2,3,4]
