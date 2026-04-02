@@ -14,32 +14,23 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#111;min-height:100vh}
 .app{max-width:480px;margin:0 auto;padding:0 0 80px}
-
-/* 상단 헤더 */
-.header{background:#fff;border-bottom:1px solid #e8e8e8;padding:14px 16px 10px;position:sticky;top:0;z-index:10}
+.header{background:#fff;border-bottom:1px solid #e8e8e8;padding:14px 16px 10px;position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center}
 .header-title{font-size:17px;font-weight:600;color:#111}
-
-/* 탭바 */
+.header-user{font-size:12px;color:#888;display:flex;align-items:center;gap:8px}
+.header-user img{width:24px;height:24px;border-radius:50%}
 .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #e8e8e8;display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
 .tab{flex:1;padding:8px 2px 6px;font-size:10px;font-weight:500;border:none;background:transparent;color:#999;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
 .tab svg{width:22px;height:22px;stroke-width:1.8}
 .tab.on{color:#111}
 .tab.on svg{stroke-width:2.2}
-
-/* 화면 */
-.screen{display:none;padding:16px}
-.screen.on{display:block}
-
-/* 카드 */
+.screen{display:none;padding:16px}.screen.on{display:block}
 .card{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .card-title{font-size:12px;color:#888;margin-bottom:12px;font-weight:500;letter-spacing:.3px}
-
-/* 홈 */
 .home-date{font-size:13px;color:#888;margin-bottom:10px}
 .home-total-box{background:#f8f8f8;border-radius:12px;padding:20px 16px;text-align:center;margin-bottom:14px}
 .home-total-label{font-size:12px;color:#888;margin-bottom:6px}
 .home-total-value{font-size:38px;font-weight:700;color:#111;letter-spacing:-1px}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .metric{background:#f8f8f8;border-radius:10px;padding:10px 6px;text-align:center}
 .metric-label{font-size:11px;color:#888;margin-bottom:3px}
 .metric-value{font-size:15px;font-weight:600}
@@ -48,8 +39,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .shortcut-btn{padding:14px 8px;background:#fff;border:1px solid #e8e8e8;border-radius:12px;font-size:13px;font-weight:500;cursor:pointer;text-align:center;color:#111;font-family:inherit}
 .shortcut-btn:active{background:#f5f5f5}
 .shortcut-icon{font-size:20px;display:block;margin-bottom:5px}
-
-/* 입력 */
 .field{margin-bottom:14px}
 .field label{display:block;font-size:13px;color:#666;margin-bottom:6px;font-weight:500}
 .field input{width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:16px;background:#fff;color:#111;font-family:inherit;-webkit-appearance:none}
@@ -65,29 +54,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .total-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #f0f0f0;margin-top:10px}
 .total-label{font-size:14px;color:#666}
 .total-value{font-size:22px;font-weight:700;color:#111}
-.btn{width:100%;padding:14px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fff;color:#111;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:background .1s}
+.btn{width:100%;padding:14px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fff;color:#111;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
 .btn:active{background:#f5f5f5}
 .btn.primary{background:#111;color:#fff;border-color:#111}
 .btn.primary:active{background:#333}
 .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-
-/* 내역 */
 .list-card{background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .list-date{font-size:14px;font-weight:600;color:#111}
 .list-sub{font-size:12px;color:#999;margin-top:2px}
 .list-amount{font-size:16px;font-weight:700;color:#111;text-align:right}
 .badges{display:flex;gap:4px;margin-top:3px;justify-content:flex-end}
 .badge{font-size:10px;padding:2px 6px;border-radius:5px;font-weight:500}
-
-/* 통계 */
 .stat-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px}
 .stat-row:last-child{border-bottom:none}
 .bar-item{margin-bottom:12px}
 .bar-label{display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:4px}
 .bar-track{height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden}
 .bar-fill{height:100%;border-radius:4px}
-
-/* 목표 */
 .day-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
 .day-box{background:#f8f8f8;border-radius:10px;padding:12px;text-align:center}
 .day-box-label{font-size:11px;color:#888;margin-bottom:4px}
@@ -105,27 +88,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .dayoff-btn.sel-wd{background:#e0eeff;border-color:#1a5fa8;color:#1a5fa8}
 .dayoff-btn.sel-lng{background:#fff3e0;border-color:#8a5200;color:#8a5200}
 .dayoff-note{font-size:12px;color:#888;margin-top:-4px;margin-bottom:4px}
-
-/* 달성 */
 .progress-track{height:10px;background:#f0f0f0;border-radius:5px;overflow:hidden;margin:6px 0}
 .progress-fill{height:100%;border-radius:5px;transition:width .4s}
 .achieve-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:4px}
 .achieve-pct{font-weight:700;font-size:15px}
-
-/* 날짜 입력 */
 .date-range{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-
+.date-range input{padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:14px;font-family:inherit;width:100%;color:#111}
 .empty{text-align:center;padding:32px 16px;color:#bbb;font-size:14px}
-
-/* 토스트 */
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99;white-space:nowrap}
 .toast.show{opacity:1}
+
+/* 로그인 화면 */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px;background:#fff}
+.login-icon{font-size:64px;margin-bottom:24px}
+.login-title{font-size:24px;font-weight:700;color:#111;margin-bottom:8px}
+.login-sub{font-size:14px;color:#888;margin-bottom:48px;text-align:center}
+.google-btn{display:flex;align-items:center;gap:12px;padding:14px 24px;border:1.5px solid #e8e8e8;border-radius:12px;background:#fff;font-size:15px;font-weight:600;color:#111;cursor:pointer;font-family:inherit;width:100%;justify-content:center}
+.google-btn:active{background:#f5f5f5}
+.google-btn img{width:20px;height:20px}
+
+/* 동기화 상태 */
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#ccc;display:inline-block;margin-left:4px}
+.sync-dot.synced{background:#2d7a1f}
+.sync-dot.syncing{background:#f5a623;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 </style>
 </head>
 <body>
 
+<!-- 로그인 화면 -->
+<div class="login-screen" id="login-screen">
+  <div class="login-icon">🚕</div>
+  <div class="login-title">택시 매출 관리</div>
+  <div class="login-sub">Google 계정으로 로그인하면<br>어느 기기에서든 데이터가 동기화돼요</div>
+  <button class="google-btn" onclick="loginWithGoogle()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+    Google로 로그인
+  </button>
+</div>
+
+<!-- 메인 앱 -->
+<div id="main-app" style="display:none">
 <div class="header">
   <div class="header-title" id="header-title">홈</div>
+  <div class="header-user">
+    <span class="sync-dot" id="sync-dot"></span>
+    <img id="user-photo" src="" style="display:none">
+    <span id="user-name"></span>
+    <button onclick="logout()" style="border:none;background:none;font-size:12px;color:#888;cursor:pointer;padding:0">로그아웃</button>
+  </div>
 </div>
 
 <div class="app">
@@ -184,8 +195,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="card">
     <div class="card-title">기간 선택</div>
     <div class="date-range">
-      <input type="date" id="l-from" style="padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:14px;font-family:inherit;width:100%;color:#111">
-      <input type="date" id="l-to" style="padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:14px;font-family:inherit;width:100%;color:#111">
+      <input type="date" id="l-from">
+      <input type="date" id="l-to">
     </div>
     <button class="btn" onclick="renderList()">조회</button>
   </div>
@@ -197,8 +208,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="card">
     <div class="card-title">기간 선택</div>
     <div class="date-range">
-      <input type="date" id="t-from" style="padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:14px;font-family:inherit;width:100%;color:#111">
-      <input type="date" id="t-to" style="padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:14px;font-family:inherit;width:100%;color:#111">
+      <input type="date" id="t-from">
+      <input type="date" id="t-to">
     </div>
     <div class="btn-row">
       <button class="btn" onclick="setRange('month')">이번달</button>
@@ -207,9 +218,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="btn" style="margin-top:8px" onclick="renderStats()">조회</button>
   </div>
   <div id="stats-body"></div>
-  <div style="margin-top:8px">
-    <button class="btn" onclick="exportCSV()">CSV 내보내기</button>
-  </div>
+  <div style="margin-top:8px"><button class="btn" onclick="exportCSV()">CSV 내보내기</button></div>
 </div>
 
 <!-- 목표 -->
@@ -259,126 +268,211 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 </div><!-- .app -->
 
-<!-- 탭바 -->
 <nav class="tabbar">
   <button class="tab on" onclick="go('home')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-    홈
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>홈
   </button>
   <button class="tab" onclick="go('input')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-    입력
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>입력
   </button>
   <button class="tab" onclick="go('list')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-    내역
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>내역
   </button>
   <button class="tab" onclick="go('stats')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-    통계
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>통계
   </button>
   <button class="tab" onclick="go('goal')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-    목표
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>목표
   </button>
 </nav>
+</div><!-- #main-app -->
 
 <div class="toast" id="toast"></div>
 
-<script>
-const DB_KEY='taxi_records', GOAL_KEY='taxi_goals'
-function getRecords(){try{return JSON.parse(localStorage.getItem(DB_KEY)||'[]')}catch{return[]}}
-function saveRecords(a){localStorage.setItem(DB_KEY,JSON.stringify(a))}
-function getGoals(){try{return JSON.parse(localStorage.getItem(GOAL_KEY)||'{}')}catch{return{}}}
-function saveGoals(o){localStorage.setItem(GOAL_KEY,JSON.stringify(o))}
-function fmt(n){return Number(n).toLocaleString()}
-function today(){return new Date().toISOString().slice(0,10)}
-function monthStart(){return today().slice(0,7)+'-01'}
-function currentMonth(){return today().slice(0,7)}
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js"
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js"
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js"
 
-const DAY_NAMES=['일','월','화','수','목','금','토']
-const WD_DOWS=[1,2,3,4]
-const LNG_DOWS=[5,6,0]
-let selectedDayoffs=new Set()
+const firebaseConfig = {
+  apiKey: "AIzaSyCHbaQs-SgUIgx59xbwZJNJE_DTjoCKLUc",
+  authDomain: "taxi-driver-68c55.firebaseapp.com",
+  projectId: "taxi-driver-68c55",
+  storageBucket: "taxi-driver-68c55.firebasestorage.app",
+  messagingSenderId: "272835674154",
+  appId: "1:272835674154:web:3a0e93f68a778dee38c353"
+}
 
-const HEADERS={home:'홈',input:'매출 입력',list:'내역',stats:'통계',goal:'목표 설정'}
+const app = initializeApp(firebaseConfig)
+const auth = getAuth(app)
+const db = getFirestore(app)
 
-function go(s){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('on',['home','input','list','stats','goal'][i]===s))
-  document.querySelectorAll('.screen').forEach(el=>el.classList.remove('on'))
+let currentUser = null
+let cachedRecords = []
+let cachedGoals = {}
+
+// ── 인증 ──────────────────────────────────────────
+window.loginWithGoogle = async () => {
+  const provider = new GoogleAuthProvider()
+  try { await signInWithPopup(auth, provider) }
+  catch(e) { toast('로그인 실패: ' + e.message) }
+}
+window.logout = async () => {
+  await signOut(auth)
+  currentUser = null
+  cachedRecords = []
+  cachedGoals = {}
+  document.getElementById('login-screen').style.display = 'flex'
+  document.getElementById('main-app').style.display = 'none'
+}
+
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUser = user
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('main-app').style.display = 'block'
+    const photo = document.getElementById('user-photo')
+    if (user.photoURL) { photo.src = user.photoURL; photo.style.display = 'block' }
+    document.getElementById('user-name').textContent = user.displayName?.split(' ')[0] || ''
+    await loadAllData()
+    renderHome()
+  } else {
+    document.getElementById('login-screen').style.display = 'flex'
+    document.getElementById('main-app').style.display = 'none'
+  }
+})
+
+// ── 데이터 로드 ────────────────────────────────────
+function setSyncing(v) {
+  const dot = document.getElementById('sync-dot')
+  dot.className = 'sync-dot ' + (v ? 'syncing' : 'synced')
+}
+
+async function loadAllData() {
+  setSyncing(true)
+  try {
+    const uid = currentUser.uid
+    // 레코드
+    const rSnap = await getDocs(collection(db, 'users', uid, 'records'))
+    cachedRecords = []
+    rSnap.forEach(d => cachedRecords.push(d.data()))
+    cachedRecords.sort((a,b) => b.date.localeCompare(a.date))
+    // 목표
+    const gSnap = await getDoc(doc(db, 'users', uid, 'meta', 'goals'))
+    cachedGoals = gSnap.exists() ? gSnap.data() : {}
+  } catch(e) { toast('데이터 로드 실패') }
+  setSyncing(false)
+}
+
+// ── 저장 ──────────────────────────────────────────
+async function saveRecordToDB(rec) {
+  setSyncing(true)
+  try {
+    const uid = currentUser.uid
+    await setDoc(doc(db, 'users', uid, 'records', rec.date), rec)
+    const idx = cachedRecords.findIndex(r => r.date === rec.date)
+    if (idx >= 0) cachedRecords[idx] = rec; else cachedRecords.push(rec)
+    cachedRecords.sort((a,b) => b.date.localeCompare(a.date))
+  } catch(e) { toast('저장 실패: ' + e.message) }
+  setSyncing(false)
+}
+
+async function saveGoalsToDB(goals) {
+  setSyncing(true)
+  try {
+    const uid = currentUser.uid
+    await setDoc(doc(db, 'users', uid, 'meta', 'goals'), goals)
+    cachedGoals = goals
+  } catch(e) { toast('목표 저장 실패') }
+  setSyncing(false)
+}
+
+// ── 유틸 ──────────────────────────────────────────
+const DAY_NAMES = ['일','월','화','수','목','금','토']
+const WD_DOWS = [1,2,3,4]
+const LNG_DOWS = [5,6,0]
+let selectedDayoffs = new Set()
+const HEADERS = {home:'홈',input:'매출 입력',list:'내역',stats:'통계',goal:'목표 설정'}
+
+function fmt(n) { return Number(n).toLocaleString() }
+function today() { return new Date().toISOString().slice(0,10) }
+function monthStart() { return today().slice(0,7)+'-01' }
+function currentMonth() { return today().slice(0,7) }
+function getRecords() { return cachedRecords }
+function getGoals() { return cachedGoals }
+
+function toast(msg) {
+  const el = document.getElementById('toast')
+  el.textContent = msg; el.classList.add('show')
+  setTimeout(() => el.classList.remove('show'), 2000)
+}
+
+window.go = function(s) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('on', ['home','input','list','stats','goal'][i]===s))
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('on'))
   document.getElementById('s-'+s).classList.add('on')
-  document.getElementById('header-title').textContent=HEADERS[s]
-  if(s==='home')renderHome()
-  if(s==='list')renderList()
-  if(s==='stats')renderStats()
-  if(s==='goal')renderGoal()
+  document.getElementById('header-title').textContent = HEADERS[s]
+  if(s==='home') renderHome()
+  if(s==='list') renderList()
+  if(s==='stats') renderStats()
+  if(s==='goal') renderGoal()
 }
 
-function toast(msg){
-  const el=document.getElementById('toast')
-  el.textContent=msg;el.classList.add('show')
-  setTimeout(()=>el.classList.remove('show'),2000)
-}
-
-// 홈
-function renderHome(){
-  const d=new Date()
-  const dn=['일','월','화','수','목','금','토']
-  document.getElementById('home-date').textContent=
+// ── 홈 ────────────────────────────────────────────
+function renderHome() {
+  const d = new Date()
+  const dn = ['일','월','화','수','목','금','토']
+  document.getElementById('home-date').textContent =
     d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+dn[d.getDay()]+')'
-  const recs=getRecords().filter(r=>r.date===today())
-  const k=recs.reduce((a,r)=>a+(+r.kakao||0),0)
-  const c=recs.reduce((a,r)=>a+(+r.card||0),0)
-  const h=recs.reduce((a,r)=>a+(+r.cash||0),0)
-  document.getElementById('home-kakao').textContent=fmt(k)
-  document.getElementById('home-card').textContent=fmt(c)
-  document.getElementById('home-cash').textContent=fmt(h)
-  document.getElementById('home-total').textContent=fmt(k+c+h)+'원'
-
-  const ym=currentMonth(), goals=getGoals(), g=goals[ym]
-  const gc=document.getElementById('home-goal-card')
+  const recs = getRecords().filter(r => r.date===today())
+  const k = recs.reduce((a,r)=>a+(+r.kakao||0),0)
+  const c = recs.reduce((a,r)=>a+(+r.card||0),0)
+  const h = recs.reduce((a,r)=>a+(+r.cash||0),0)
+  document.getElementById('home-kakao').textContent = fmt(k)
+  document.getElementById('home-card').textContent = fmt(c)
+  document.getElementById('home-cash').textContent = fmt(h)
+  document.getElementById('home-total').textContent = fmt(k+c+h)+'원'
+  const ym = currentMonth(), g = getGoals()[ym]
+  const gc = document.getElementById('home-goal-card')
   if(!g){gc.style.display='none';return}
   gc.style.display='block'
-  const dayoffs=new Set(g.dayoffs||[])
-  const{wd,lng}=countDays(ym,dayoffs)
-  const[y,m]=ym.split('-').map(Number)
-  const lastDay=new Date(y,m,0).getDate()
-  const from=ym+'-01',to=ym+'-'+String(lastDay).padStart(2,'0')
-  const allRecs=getRecords().filter(r=>r.date>=from&&r.date<=to)
-  const wdA=allRecs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return WD_DOWS.includes(dow)&&!dayoffs.has(dow)}).reduce((a,r)=>a+r.total,0)
-  const lngA=allRecs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return LNG_DOWS.includes(dow)&&!dayoffs.has(dow)}).reduce((a,r)=>a+r.total,0)
-  const totalA=wdA+lngA
-  const monthGoal=wd*(g.wdGoal||0)+lng*(g.lngGoal||0)
-  const pct=monthGoal?Math.min(Math.round(totalA/monthGoal*100),100):0
-  const color=p=>p>=100?'#2d7a1f':p>=70?'#1a5fa8':'#8a5200'
+  const dayoffs = new Set(g.dayoffs||[])
+  const{wd,lng} = countDays(ym,dayoffs)
+  const[y,m] = ym.split('-').map(Number)
+  const lastDay = new Date(y,m,0).getDate()
+  const from = ym+'-01', to = ym+'-'+String(lastDay).padStart(2,'0')
+  const allRecs = getRecords().filter(r=>r.date>=from&&r.date<=to)
+  const wdA = allRecs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return WD_DOWS.includes(dow)&&!dayoffs.has(dow)}).reduce((a,r)=>a+r.total,0)
+  const lngA = allRecs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return LNG_DOWS.includes(dow)&&!dayoffs.has(dow)}).reduce((a,r)=>a+r.total,0)
+  const totalA = wdA+lngA
+  const monthGoal = wd*(g.wdGoal||0)+lng*(g.lngGoal||0)
+  const pct = monthGoal?Math.min(Math.round(totalA/monthGoal*100),100):0
+  const color = p=>p>=100?'#2d7a1f':p>=70?'#1a5fa8':'#8a5200'
   document.getElementById('home-achieve').innerHTML=`
     <div class="achieve-row"><span>이달 달성률</span><span class="achieve-pct" style="color:${color(pct)}">${pct}%</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color(pct)}"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-top:4px"><span>${fmt(totalA)}원</span><span>목표 ${fmt(monthGoal)}원</span></div>`
 }
 
-// 입력
-document.getElementById('i-date').value=today()
-;['i-kakao','i-card','i-cash'].forEach(id=>document.getElementById(id).addEventListener('input',updateTotal))
-function updateTotal(){
+// ── 입력 ──────────────────────────────────────────
+document.getElementById('i-date').value = today()
+;['i-kakao','i-card','i-cash'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   const k=+document.getElementById('i-kakao').value||0
   const c=+document.getElementById('i-card').value||0
   const h=+document.getElementById('i-cash').value||0
   document.getElementById('i-total').textContent=fmt(k+c+h)+'원'
-}
-function saveRecord(){
+}))
+
+window.saveRecord = async function() {
   const date=document.getElementById('i-date').value
   const kakao=+document.getElementById('i-kakao').value||0
   const card=+document.getElementById('i-card').value||0
   const cash=+document.getElementById('i-cash').value||0
   const memo=document.getElementById('i-memo').value.trim()
   if(!kakao&&!card&&!cash){toast('금액을 입력해주세요');return}
-  const recs=getRecords()
-  const idx=recs.findIndex(r=>r.date===date)
   const rec={date,kakao,card,cash,memo,total:kakao+card+cash}
-  if(idx>=0)recs[idx]=rec;else recs.push(rec)
-  recs.sort((a,b)=>b.date.localeCompare(a.date))
-  saveRecords(recs)
+  await saveRecordToDB(rec)
   document.getElementById('i-kakao').value=''
   document.getElementById('i-card').value=''
   document.getElementById('i-cash').value=''
@@ -387,10 +481,11 @@ function saveRecord(){
   toast('저장됐습니다!')
 }
 
-// 내역
+// ── 내역 ──────────────────────────────────────────
 const lFrom=document.getElementById('l-from'),lTo=document.getElementById('l-to')
 lFrom.value=monthStart();lTo.value=today()
-function renderList(){
+
+window.renderList = function() {
   const from=lFrom.value,to=lTo.value
   const recs=getRecords().filter(r=>r.date>=from&&r.date<=to)
   const el=document.getElementById('list-body')
@@ -406,18 +501,19 @@ function renderList(){
       </div></div>
     </div>`).join('')
 }
-renderList()
 
-// 통계
+// ── 통계 ──────────────────────────────────────────
 const tFrom=document.getElementById('t-from'),tTo=document.getElementById('t-to')
 tFrom.value=monthStart();tTo.value=today()
-function setRange(t){
+
+window.setRange = function(t) {
   const d=new Date()
   if(t==='month'){tFrom.value=today().slice(0,7)+'-01';tTo.value=today()}
   else{const day=d.getDay()||7;const mon=new Date(d);mon.setDate(d.getDate()-day+1);tFrom.value=mon.toISOString().slice(0,10);tTo.value=today()}
   renderStats()
 }
-function renderStats(){
+
+window.renderStats = function() {
   const from=tFrom.value,to=tTo.value
   const recs=getRecords().filter(r=>r.date>=from&&r.date<=to)
   const el=document.getElementById('stats-body')
@@ -444,9 +540,8 @@ function renderStats(){
     </div>
   </div>`
 }
-renderStats()
 
-// 목표
+// ── 목표 ──────────────────────────────────────────
 function countDays(ym,dayoffs){
   const[y,m]=ym.split('-').map(Number)
   const days=new Date(y,m,0).getDate()
@@ -454,6 +549,7 @@ function countDays(ym,dayoffs){
   for(let d=1;d<=days;d++){const dow=new Date(y,m-1,d).getDay();if(dayoffs.has(dow))continue;if(WD_DOWS.includes(dow))wd++;else if(LNG_DOWS.includes(dow))lng++}
   return{wd,lng,total:wd+lng}
 }
+
 function buildDayoffButtons(){
   const ym=document.getElementById('g-month').value||currentMonth()
   const[y,m]=ym.split('-').map(Number)
@@ -479,12 +575,14 @@ function buildDayoffButtons(){
   LNG_DOWS.forEach(d=>lw.appendChild(makeBtn(d,'lng')))
   updateDayoffNote()
 }
+
 function updateDayoffNote(){
   const el=document.getElementById('dayoff-note')
   if(selectedDayoffs.size===0){el.textContent='';return}
   const order=[1,2,3,4,5,6,0]
   el.textContent='매주 '+[...selectedDayoffs].sort((a,b)=>order.indexOf(a)-order.indexOf(b)).map(d=>DAY_NAMES[d]).join('·')+' 휴무 적용'
 }
+
 function calcDayCounts(){
   const ym=document.getElementById('g-month').value||currentMonth()
   const{wd,lng,total}=countDays(ym,selectedDayoffs)
@@ -492,6 +590,7 @@ function calcDayCounts(){
   document.getElementById('g-lng-count').textContent=lng
   document.getElementById('g-total-days').textContent=total
 }
+
 function calcGoalPreview(){
   const ym=document.getElementById('g-month').value||currentMonth()
   const{wd,lng}=countDays(ym,selectedDayoffs)
@@ -502,30 +601,36 @@ function calcGoalPreview(){
   document.getElementById('g-lng-total').textContent=lt?fmt(lt)+'원':'-'
   document.getElementById('g-month-total').textContent=mt?fmt(mt)+'원':'-'
 }
+
 const gMonth=document.getElementById('g-month')
 gMonth.value=currentMonth()
 gMonth.addEventListener('change',()=>{selectedDayoffs=new Set();renderGoal()})
 ;['g-wd-goal','g-lng-goal'].forEach(id=>document.getElementById(id).addEventListener('input',calcGoalPreview))
+
 function renderGoal(){
   const ym=document.getElementById('g-month').value||currentMonth()
-  const goals=getGoals(),g=goals[ym]||{}
+  const g=getGoals()[ym]||{}
   selectedDayoffs=g.dayoffs?new Set(g.dayoffs):new Set()
   buildDayoffButtons();calcDayCounts()
   document.getElementById('g-wd-goal').value=g.wdGoal||''
   document.getElementById('g-lng-goal').value=g.lngGoal||''
   calcGoalPreview();renderAchieve(ym)
 }
-function saveGoal(){
+
+window.saveGoal = async function(){
   const ym=document.getElementById('g-month').value||currentMonth()
   const wdGoal=+document.getElementById('g-wd-goal').value||0
   const lngGoal=+document.getElementById('g-lng-goal').value||0
   if(!wdGoal&&!lngGoal){toast('목표 금액을 입력해주세요');return}
-  const goals=getGoals()
+  const goals={...getGoals()}
   goals[ym]={wdGoal,lngGoal,dayoffs:[...selectedDayoffs]}
-  saveGoals(goals);renderAchieve(ym);toast('목표가 저장됐습니다!')
+  await saveGoalsToDB(goals)
+  renderAchieve(ym)
+  toast('목표가 저장됐습니다!')
 }
+
 function renderAchieve(ym){
-  const goals=getGoals(),g=goals[ym]
+  const g=getGoals()[ym]
   const el=document.getElementById('achieve-body')
   if(!g){el.innerHTML='<div class="empty">목표를 저장하면 달성률이 표시됩니다</div>';return}
   const dayoffs=new Set(g.dayoffs||[])
@@ -534,10 +639,10 @@ function renderAchieve(ym){
   const lastDay=new Date(y,m,0).getDate()
   const from=ym+'-01',to=ym+'-'+String(lastDay).padStart(2,'0')
   const recs=getRecords().filter(r=>r.date>=from&&r.date<=to)
-  const wdA=recs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return WD_DOWS.includes(dow)&&!dayoffs.has(dow)}).reduce((a,r)=>a+r.total,0)
-  const lngA=recs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return LNG_DOWS.includes(dow)&&!dayoffs.has(dow)}).reduce((a,r)=>a+r.total,0)
   const wdRecs=recs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return WD_DOWS.includes(dow)&&!dayoffs.has(dow)})
   const lngRecs=recs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return LNG_DOWS.includes(dow)&&!dayoffs.has(dow)})
+  const wdA=wdRecs.reduce((a,r)=>a+r.total,0)
+  const lngA=lngRecs.reduce((a,r)=>a+r.total,0)
   const totalA=wdA+lngA
   const wdGT=wd*(g.wdGoal||0),lngGT=lng*(g.lngGoal||0),monthGT=wdGT+lngGT
   const pct=v=>Math.min(Math.round(v),100)
@@ -558,11 +663,9 @@ function renderAchieve(ym){
     <div class="progress-track"><div class="progress-fill" style="width:${lngP}%;background:#8a5200"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:12px;color:#888"><span>${fmt(lngA)}원 (${lngRecs.length}일 / 목표 ${lng}일)</span><span>목표 ${fmt(lngGT)}원</span></div>`
 }
-renderGoal()
-renderHome()
 
-// CSV
-function exportCSV(){
+// ── CSV ───────────────────────────────────────────
+window.exportCSV = function(){
   const from=tFrom.value,to=tTo.value
   const recs=getRecords().filter(r=>r.date>=from&&r.date<=to)
   if(!recs.length){toast('내보낼 데이터가 없습니다');return}
@@ -573,11 +676,6 @@ function exportCSV(){
   a.download='택시매출_'+from+'_'+to+'.csv'
   a.click()
   toast('CSV 저장됐습니다!')
-}
-
-// 서비스워커 등록
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{})
 }
 </script>
 </body>
