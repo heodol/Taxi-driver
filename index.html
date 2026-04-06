@@ -173,14 +173,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <label>날짜</label>
       <input type="date" id="i-date">
     </div>
-    <div class="amount-row">
-      <div class="field"><span class="amount-tag kakao-tag">카카오T</span><input type="number" id="i-kakao" placeholder="0" min="0" step="100" inputmode="numeric"></div>
-      <div class="field"><span class="amount-tag card-tag">카드</span><input type="number" id="i-card" placeholder="0" min="0" step="100" inputmode="numeric"></div>
-      <div class="field"><span class="amount-tag cash-tag">현금</span><input type="number" id="i-cash" placeholder="0" min="0" step="100" inputmode="numeric"></div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:6px;margin-bottom:4px">
+      <div style="font-size:11px;font-weight:600;color:#888;padding-left:2px">금액</div>
+      <div style="font-size:11px;font-weight:600;color:#888;text-align:center">건수</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:6px;margin-bottom:8px;align-items:center">
+      <div><span class="amount-tag kakao-tag">카카오T</span><input type="number" id="i-kakao" placeholder="0" min="0" step="100" inputmode="numeric" style="width:100%;padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111"></div>
+      <div><span class="amount-tag" style="visibility:hidden;font-size:11px">건</span><input type="number" id="i-kakao-cnt" placeholder="0" min="0" step="1" inputmode="numeric" style="width:100%;padding:10px 8px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111;text-align:center"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:6px;margin-bottom:8px;align-items:center">
+      <div><span class="amount-tag card-tag">카드</span><input type="number" id="i-card" placeholder="0" min="0" step="100" inputmode="numeric" style="width:100%;padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111"></div>
+      <div><span class="amount-tag" style="visibility:hidden;font-size:11px">건</span><input type="number" id="i-card-cnt" placeholder="0" min="0" step="1" inputmode="numeric" style="width:100%;padding:10px 8px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111;text-align:center"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:6px;margin-bottom:0;align-items:center">
+      <div><span class="amount-tag cash-tag">현금</span><input type="number" id="i-cash" placeholder="0" min="0" step="100" inputmode="numeric" style="width:100%;padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111"></div>
+      <div><span class="amount-tag" style="visibility:hidden;font-size:11px">건</span><input type="number" id="i-cash-cnt" placeholder="0" min="0" step="1" inputmode="numeric" style="width:100%;padding:10px 8px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111;text-align:center"></div>
     </div>
     <div class="total-row">
       <span class="total-label">합계</span>
-      <span class="total-value" id="i-total">0원</span>
+      <span style="text-align:right"><span class="total-value" id="i-total">0원</span><span style="font-size:12px;color:#888;margin-left:8px" id="i-total-cnt"></span></span>
     </div>
     <div class="field" style="margin-top:12px">
       <label>메모 (선택)</label>
@@ -487,12 +498,18 @@ function renderHome() {
 // ── 입력 ──────────────────────────────────────────
 function loadExistingRecord(date) {
   const rec = getRecords().find(r => r.date === date)
-  document.getElementById('i-kakao').value = rec ? rec.kakao||'' : ''
-  document.getElementById('i-card').value  = rec ? rec.card||''  : ''
-  document.getElementById('i-cash').value  = rec ? rec.cash||''  : ''
-  document.getElementById('i-memo').value  = rec ? rec.memo||''  : ''
+  document.getElementById('i-kakao').value     = rec ? rec.kakao||'' : ''
+  document.getElementById('i-card').value      = rec ? rec.card||''  : ''
+  document.getElementById('i-cash').value      = rec ? rec.cash||''  : ''
+  document.getElementById('i-kakao-cnt').value = rec ? rec.kakaoCnt||'' : ''
+  document.getElementById('i-card-cnt').value  = rec ? rec.cardCnt||''  : ''
+  document.getElementById('i-cash-cnt').value  = rec ? rec.cashCnt||''  : ''
+  document.getElementById('i-memo').value      = rec ? rec.memo||''  : ''
   const k=+(rec?.kakao||0), c=+(rec?.card||0), h=+(rec?.cash||0)
+  const kc=+(rec?.kakaoCnt||0), cc=+(rec?.cardCnt||0), hc=+(rec?.cashCnt||0)
   document.getElementById('i-total').textContent = fmt(k+c+h)+'원'
+  const tc=kc+cc+hc
+  document.getElementById('i-total-cnt').textContent = tc ? '총 '+tc+'건' : ''
 }
 
 document.getElementById('i-date').value = today()
@@ -502,11 +519,16 @@ document.getElementById('i-date').addEventListener('change', function() {
   loadExistingRecord(this.value)
 })
 
-;['i-kakao','i-card','i-cash'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+;['i-kakao','i-card','i-cash','i-kakao-cnt','i-card-cnt','i-cash-cnt'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
   const k=+document.getElementById('i-kakao').value||0
   const c=+document.getElementById('i-card').value||0
   const h=+document.getElementById('i-cash').value||0
+  const kc=+document.getElementById('i-kakao-cnt').value||0
+  const cc=+document.getElementById('i-card-cnt').value||0
+  const hc=+document.getElementById('i-cash-cnt').value||0
   document.getElementById('i-total').textContent=fmt(k+c+h)+'원'
+  const tc=kc+cc+hc
+  document.getElementById('i-total-cnt').textContent=tc?'총 '+tc+'건':''
 }))
 
 window.saveRecord = async function() {
@@ -514,9 +536,13 @@ window.saveRecord = async function() {
   const kakao=+document.getElementById('i-kakao').value||0
   const card=+document.getElementById('i-card').value||0
   const cash=+document.getElementById('i-cash').value||0
+  const kakaoCnt=+document.getElementById('i-kakao-cnt').value||0
+  const cardCnt=+document.getElementById('i-card-cnt').value||0
+  const cashCnt=+document.getElementById('i-cash-cnt').value||0
   const memo=document.getElementById('i-memo').value.trim()
   if(!kakao&&!card&&!cash){toast('금액을 입력해주세요');return}
-  const rec={date,kakao,card,cash,memo,total:kakao+card+cash}
+  const totalCnt=kakaoCnt+cardCnt+cashCnt
+  const rec={date,kakao,card,cash,kakaoCnt,cardCnt,cashCnt,totalCnt,memo,total:kakao+card+cash}
   await saveRecordToDB(rec)
   toast('저장됐습니다!')
   setTimeout(()=>go('home'), 800)
@@ -534,12 +560,14 @@ window.renderList = function() {
   el.innerHTML=recs.map(r=>`
     <div class="list-card">
       <div><div class="list-date">${r.date}</div><div class="list-sub">${r.memo||''}</div></div>
-      <div><div class="list-amount">${fmt(r.total)}원</div>
-      <div class="badges">
-        ${r.kakao?`<span class="badge" style="background:#e8f5e0;color:#2d7a1f">${fmt(r.kakao)}</span>`:''}
-        ${r.card?`<span class="badge" style="background:#e0eeff;color:#1a5fa8">${fmt(r.card)}</span>`:''}
-        ${r.cash?`<span class="badge" style="background:#fff3e0;color:#8a5200">${fmt(r.cash)}</span>`:''}
-      </div></div>
+      <div style="text-align:right">
+        <div class="list-amount">${fmt(r.total)}원 ${r.totalCnt?'<span style="font-size:12px;color:#888;font-weight:400">'+r.totalCnt+'건</span>':''}</div>
+        <div class="badges">
+          ${r.kakao?`<span class="badge" style="background:#e8f5e0;color:#2d7a1f">${fmt(r.kakao)}${r.kakaoCnt?' '+r.kakaoCnt+'건':''}</span>`:''}
+          ${r.card?`<span class="badge" style="background:#e0eeff;color:#1a5fa8">${fmt(r.card)}${r.cardCnt?' '+r.cardCnt+'건':''}</span>`:''}
+          ${r.cash?`<span class="badge" style="background:#fff3e0;color:#8a5200">${fmt(r.cash)}${r.cashCnt?' '+r.cashCnt+'건':''}</span>`:''}
+        </div>
+      </div>
     </div>`).join('')
 }
 
@@ -563,22 +591,61 @@ window.renderStats = function() {
   const kakao=recs.reduce((a,r)=>a+(+r.kakao||0),0)
   const card=recs.reduce((a,r)=>a+(+r.card||0),0)
   const cash=recs.reduce((a,r)=>a+(+r.cash||0),0)
+  const kakaoCnt=recs.reduce((a,r)=>a+(+r.kakaoCnt||0),0)
+  const cardCnt=recs.reduce((a,r)=>a+(+r.cardCnt||0),0)
+  const cashCnt=recs.reduce((a,r)=>a+(+r.cashCnt||0),0)
+  const totalCnt=kakaoCnt+cardCnt+cashCnt
   const days=recs.length,avg=days?Math.round(total/days):0
+  const avgCnt=totalCnt&&days?Math.round(totalCnt/days*10)/10:0
   const pct=v=>total?Math.round(v/total*100):0
+  const pctCnt=v=>totalCnt?Math.round(v/totalCnt*100):0
+
+  // 요일별 집계
+  const dowNames=['일','월','화','수','목','금','토']
+  const dowData=Array.from({length:7},()=>({total:0,cnt:0,days:0}))
+  recs.forEach(r=>{
+    const dow=new Date(r.date+'T00:00:00').getDay()
+    dowData[dow].total+=r.total
+    dowData[dow].cnt+=(+r.totalCnt||0)
+    dowData[dow].days++
+  })
+  const maxAvgTotal=Math.max(...dowData.map(d=>d.days?Math.round(d.total/d.days):0),1)
+  const dowBars=dowData.map((d,i)=>{
+    const avgT=d.days?Math.round(d.total/d.days):0
+    const avgC=d.days?Math.round(d.cnt/d.days*10)/10:0
+    const w=Math.round(avgT/maxAvgTotal*100)
+    const color=i===0?'#E24B4A':i===6?'#1a5fa8':'#2d7a1f'
+    return `<div class="bar-item">
+      <div class="bar-label">
+        <span style="font-weight:600;color:${color};width:20px;display:inline-block">${dowNames[i]}</span>
+        <span style="color:#888;font-size:11px">${d.days}일 운행</span>
+        <span>${avgT?fmt(avgT)+'원':'휴무'} ${avgC?avgC+'건':''}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
+    </div>`
+  }).join('')
+
   el.innerHTML=`
   <div class="card">
     <div class="card-title">기간 합계 (${days}일)</div>
     <div class="stat-row"><span style="color:#888">총 매출</span><span style="font-weight:700">${fmt(total)}원</span></div>
-    <div class="stat-row"><span style="color:#888">일 평균</span><span style="font-weight:700">${fmt(avg)}원</span></div>
+    <div class="stat-row"><span style="color:#888">총 건수</span><span style="font-weight:700">${totalCnt?totalCnt+'건':'-'}</span></div>
+    <div class="stat-row"><span style="color:#888">일 평균 매출</span><span style="font-weight:700">${fmt(avg)}원</span></div>
+    <div class="stat-row"><span style="color:#888">일 평균 건수</span><span style="font-weight:700">${avgCnt?avgCnt+'건':'-'}</span></div>
     <div class="stat-row"><span style="color:#888">최고 매출일</span><span style="font-weight:700">${recs.reduce((a,r)=>r.total>a.total?r:a,recs[0]).date}</span></div>
   </div>
   <div class="card">
     <div class="card-title">결제 수단별</div>
     <div style="margin-top:8px">
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag kakao-tag">카카오T</span><span>${fmt(kakao)}원 (${pct(kakao)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(kakao)}%;background:#2d7a1f"></div></div></div>
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag card-tag">카드</span><span>${fmt(card)}원 (${pct(card)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(card)}%;background:#1a5fa8"></div></div></div>
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag cash-tag">현금</span><span>${fmt(cash)}원 (${pct(cash)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(cash)}%;background:#8a5200"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span class="amount-tag kakao-tag">카카오T</span><span>${fmt(kakao)}원 ${kakaoCnt?kakaoCnt+'건':''} (${pct(kakao)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(kakao)}%;background:#2d7a1f"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span class="amount-tag card-tag">카드</span><span>${fmt(card)}원 ${cardCnt?cardCnt+'건':''} (${pct(card)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(card)}%;background:#1a5fa8"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span class="amount-tag cash-tag">현금</span><span>${fmt(cash)}원 ${cashCnt?cashCnt+'건':''} (${pct(cash)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(cash)}%;background:#8a5200"></div></div></div>
     </div>
+  </div>
+  <div class="card">
+    <div class="card-title">요일별 평균 매출·건수</div>
+    <div style="margin-top:8px">${dowBars}</div>
+    <div style="font-size:11px;color:#aaa;margin-top:8px;text-align:right">막대 = 평균 매출 기준</div>
   </div>`
 }
 
