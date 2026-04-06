@@ -621,7 +621,7 @@
       <div class="login-sub">
         Google 계정으로 로그인하면<br />어느 기기에서든 데이터가 동기화돼요
       </div>
-      <button class="google-btn" onclick="loginWithGoogle()">
+      <button class="google-btn" id="google-btn" onclick="loginWithGoogle()">
         <img
           src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
           alt="Google"
@@ -1183,11 +1183,27 @@
 
           // ── 인증 ──────────────────────────────────────────
           window.loginWithGoogle = async () => {
+            const btn = document.getElementById("google-btn");
+            btn.disabled = true;
+            btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" /> 로그인 중...';
             const provider = new GoogleAuthProvider();
             try {
               await signInWithPopup(auth, provider);
             } catch (e) {
-              toast("로그인 실패: " + e.message);
+              if (e.code === 'auth/popup-blocked') {
+                // 팝업 차단 시 redirect 시도
+                try {
+                  await signInWithRedirect(auth, provider);
+                } catch (redirectError) {
+                  toast("로그인 실패: " + redirectError.message);
+                  btn.disabled = false;
+                  btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" /> Google로 로그인';
+                }
+              } else {
+                toast("로그인 실패: " + e.message);
+                btn.disabled = false;
+                btn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" /> Google로 로그인';
+              }
             }
           };
           window.logout = async () => {
