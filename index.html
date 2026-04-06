@@ -665,7 +665,7 @@
             </div>
             <div class="metrics">
               <div class="metric">
-                <div class="metric-label">카카오T</div>
+                <div class="metric-label">자동결제콜</div>
                 <div class="metric-value kakao" id="home-kakao">0</div>
               </div>
               <div class="metric">
@@ -678,7 +678,7 @@
               </div>
             </div>
           </div>
-          <div class="shortcut" style="margin-bottom: 20px;">
+          <div class="shortcut" style="margin-bottom: 20px">
             <button class="shortcut-btn" onclick="go('input')">
               <span class="shortcut-icon">✏️</span>매출 입력
             </button>
@@ -747,7 +747,7 @@
               "
             >
               <div>
-                <span class="amount-tag kakao-tag">카카오T</span
+                <span class="amount-tag kakao-tag">자동결제콜</span
                 ><input
                   type="number"
                   id="i-kakao"
@@ -1735,7 +1735,7 @@
       <div class="card">
         <div class="card-title">결제 수단별</div>
         <div style="margin-top:8px">
-          <div class="bar-item"><div class="bar-label"><span class="amount-tag kakao-tag">카카오T</span><span>${fmt(kakao)}원 / ${kakaoCnt}건 (${pct(kakao)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(kakao)}%;background:#2d7a1f"></div></div></div>
+          <div class="bar-item"><div class="bar-label"><span class="amount-tag kakao-tag">자동결제콜</span><span>${fmt(kakao)}원 / ${kakaoCnt}건 (${pct(kakao)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(kakao)}%;background:#2d7a1f"></div></div></div>
           <div class="bar-item"><div class="bar-label"><span class="amount-tag card-tag">카드</span><span>${fmt(card)}원 / ${cardCnt}건 (${pct(card)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(card)}%;background:#1a5fa8"></div></div></div>
           <div class="bar-item"><div class="bar-label"><span class="amount-tag cash-tag">현금</span><span>${fmt(cash)}원 / ${cashCnt}건 (${pct(cash)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(cash)}%;background:#8a5200"></div></div></div>
         </div>
@@ -1946,7 +1946,7 @@
           return;
         }
         const csv =
-          "\uFEFF날짜,카카오T,카드,현금,합계,메모\n" +
+          "\uFEFF날짜,자동결제콜,카드,현금,합계,메모\n" +
           recs
             .map((r) =>
               [r.date, r.kakao, r.card, r.cash, r.total, r.memo || ""].join(
