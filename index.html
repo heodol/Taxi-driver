@@ -660,7 +660,7 @@
           <div class="card">
             <div class="home-date" id="home-date"></div>
             <div class="home-total-box">
-              <div class="home-total-label">오늘 총 매출은 얼마일까</div>
+              <div class="home-total-label">오늘 총 매출</div>
               <div class="home-total-value" id="home-total">0원</div>
             </div>
             <div class="metrics">
@@ -1417,7 +1417,7 @@
                 <div class="bar-label">
                   <span style="font-weight:600;color:${color};width:20px;display:inline-block">${DAY_NAMES[i]}</span>
                   <span style="color:#888;font-size:11px">${d.days}일 운행</span>
-                  <span>${avgT ? fmt(avgT) + "원" : "휴무"}</span><br><span style="font-size:10px;color:#666">${avgC ? avgC + "건" : ""}</span>
+                  <span>${d.days ? (avgT ? fmt(avgT) + "원" : "없음") : "없음"}</span><br><span style="font-size:10px;color:#666">${d.days ? (avgC ? avgC + "건" : "없음") : "없음"}</span>
                 </div>
                 <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
               </div>`;
