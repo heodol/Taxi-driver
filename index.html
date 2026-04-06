@@ -682,14 +682,6 @@
             <div class="card-title">이달 달성 현황</div>
             <div id="home-achieve"></div>
           </div>
-          <div class="card" id="home-dow-sales-card">
-            <div class="card-title">요일별 평균 매출</div>
-            <div id="home-dow-sales-body"></div>
-          </div>
-          <div class="card" id="home-dow-count-card">
-            <div class="card-title">요일별 평균 건수</div>
-            <div id="home-dow-count-body"></div>
-          </div>
           <div class="shortcut">
             <button class="shortcut-btn" onclick="go('input')">
               <span class="shortcut-icon">✏️</span>매출 입력
@@ -697,6 +689,14 @@
             <button class="shortcut-btn" onclick="go('stats')">
               <span class="shortcut-icon">📊</span>통계 보기
             </button>
+          </div>
+          <div class="card" id="home-dow-sales-card">
+            <div class="card-title">요일별 평균 매출</div>
+            <div id="home-dow-sales-body"></div>
+          </div>
+          <div class="card" id="home-dow-count-card">
+            <div class="card-title">요일별 평균 건수</div>
+            <div id="home-dow-count-body"></div>
           </div>
         </div>
 
@@ -1406,11 +1406,15 @@
         const k = recs.reduce((a, r) => a + (+r.kakao || 0), 0);
         const c = recs.reduce((a, r) => a + (+r.card || 0), 0);
         const h = recs.reduce((a, r) => a + (+r.cash || 0), 0);
-        document.getElementById("home-kakao").textContent = fmt(k);
-        document.getElementById("home-card").textContent = fmt(c);
-        document.getElementById("home-cash").textContent = fmt(h);
+        const kc = recs.reduce((a, r) => a + (+r.kakaoCnt || 0), 0);
+        const cc = recs.reduce((a, r) => a + (+r.cardCnt || 0), 0);
+        const hc = recs.reduce((a, r) => a + (+r.cashCnt || 0), 0);
+        const totalCnt = kc + cc + hc;
+        document.getElementById("home-kakao").textContent = fmt(k) + (kc ? ` (${kc}건)` : "");
+        document.getElementById("home-card").textContent = fmt(c) + (cc ? ` (${cc}건)` : "");
+        document.getElementById("home-cash").textContent = fmt(h) + (hc ? ` (${hc}건)` : "");
         document.getElementById("home-total").textContent =
-          fmt(k + c + h) + "원";
+          fmt(k + c + h) + "원" + (totalCnt ? ` (${totalCnt}건)` : "");
         // 요일별 평균 계산 (최근 30일)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -1434,7 +1438,9 @@
           1,
         );
         const maxAvgCount = Math.max(
-          ...dowData.map((d) => (d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0)),
+          ...dowData.map((d) =>
+            d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0,
+          ),
           1,
         );
         const dowBarsSales = dowData
