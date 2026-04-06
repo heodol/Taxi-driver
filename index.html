@@ -682,6 +682,10 @@
             <div class="card-title">이달 달성 현황</div>
             <div id="home-achieve"></div>
           </div>
+          <div class="card" id="home-dow-card">
+            <div class="card-title">요일별 평균 매출·건수</div>
+            <div id="home-dow-body"></div>
+          </div>
           <div class="shortcut">
             <button class="shortcut-btn" onclick="go('input')">
               <span class="shortcut-icon">✏️</span>매출 입력
@@ -1139,742 +1143,769 @@
 
     <!-- Firebase SDK -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-      import {
-        getAuth,
-        GoogleAuthProvider,
-        signInWithPopup,
-        signOut,
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-      import {
-        getFirestore,
-        doc,
-        setDoc,
-        getDoc,
-        collection,
-        query,
-        where,
-        getDocs,
-        orderBy,
-        onSnapshot,
-      } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+          import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+          import {
+            getAuth,
+            GoogleAuthProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged,
+          } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+          import {
+            getFirestore,
+            doc,
+            setDoc,
+            getDoc,
+            collection,
+            query,
+            where,
+            getDocs,
+            orderBy,
+            onSnapshot,
+          } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyCHbaQs-SgUIgx59xbwZJNJE_DTjoCKLUc",
-        authDomain: "taxi-driver-68c55.firebaseapp.com",
-        projectId: "taxi-driver-68c55",
-        storageBucket: "taxi-driver-68c55.firebasestorage.app",
-        messagingSenderId: "272835674154",
-        appId: "1:272835674154:web:3a0e93f68a778dee38c353",
-      };
+          const firebaseConfig = {
+            apiKey: "AIzaSyCHbaQs-SgUIgx59xbwZJNJE_DTjoCKLUc",
+            authDomain: "taxi-driver-68c55.firebaseapp.com",
+            projectId: "taxi-driver-68c55",
+            storageBucket: "taxi-driver-68c55.firebasestorage.app",
+            messagingSenderId: "272835674154",
+            appId: "1:272835674154:web:3a0e93f68a778dee38c353",
+          };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+          const app = initializeApp(firebaseConfig);
+          const auth = getAuth(app);
+          const db = getFirestore(app);
 
-      let currentUser = null;
-      let cachedRecords = [];
-      let cachedGoals = {};
+          let currentUser = null;
+          let cachedRecords = [];
+          let cachedGoals = {};
 
-      // ── 인증 ──────────────────────────────────────────
-      window.loginWithGoogle = async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-          await signInWithPopup(auth, provider);
-        } catch (e) {
-          toast("로그인 실패: " + e.message);
-        }
-      };
-      window.logout = async () => {
-        if (unsubRecords) unsubRecords();
-        if (unsubGoals) unsubGoals();
-        await signOut(auth);
-        currentUser = null;
-        cachedRecords = [];
-        cachedGoals = {};
-        document.getElementById("login-screen").style.display = "flex";
-        document.getElementById("main-app").style.display = "none";
-      };
-
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          currentUser = user;
-          document.getElementById("login-screen").style.display = "none";
-          document.getElementById("main-app").style.display = "block";
-          const photo = document.getElementById("user-photo");
-          if (user.photoURL) {
-            photo.src = user.photoURL;
-            photo.style.display = "block";
-          }
-          document.getElementById("user-name").textContent =
-            user.displayName?.split(" ")[0] || "";
-          await loadAllData();
-          renderHome();
-        } else {
-          document.getElementById("login-screen").style.display = "flex";
-          document.getElementById("main-app").style.display = "none";
-        }
-      });
-
-      // ── 데이터 로드 ────────────────────────────────────
-      function setSyncing(v) {
-        const dot = document.getElementById("sync-dot");
-        dot.className = "sync-dot " + (v ? "syncing" : "synced");
-      }
-
-      let unsubRecords = null;
-      let unsubGoals = null;
-
-      function startRealtimeSync(uid) {
-        // 기존 리스너 해제
-        if (unsubRecords) unsubRecords();
-        if (unsubGoals) unsubGoals();
-
-        setSyncing(true);
-
-        // 레코드 실시간 리스너
-        unsubRecords = onSnapshot(
-          collection(db, "users", uid, "records"),
-          (snap) => {
+          // ── 인증 ──────────────────────────────────────────
+          window.loginWithGoogle = async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+              await signInWithPopup(auth, provider);
+            } catch (e) {
+              toast("로그인 실패: " + e.message);
+            }
+          };
+          window.logout = async () => {
+            if (unsubRecords) unsubRecords();
+            if (unsubGoals) unsubGoals();
+            await signOut(auth);
+            currentUser = null;
             cachedRecords = [];
-            snap.forEach((d) => cachedRecords.push(d.data()));
-            cachedRecords.sort((a, b) => b.date.localeCompare(a.date));
+            cachedGoals = {};
+            document.getElementById("login-screen").style.display = "flex";
+            document.getElementById("main-app").style.display = "none";
+          };
+
+          onAuthStateChanged(auth, async (user) => {
+            if (user) {
+              currentUser = user;
+              document.getElementById("login-screen").style.display = "none";
+              document.getElementById("main-app").style.display = "block";
+              const photo = document.getElementById("user-photo");
+              if (user.photoURL) {
+                photo.src = user.photoURL;
+                photo.style.display = "block";
+              }
+              document.getElementById("user-name").textContent =
+                user.displayName?.split(" ")[0] || "";
+              await loadAllData();
+              renderHome();
+            } else {
+              document.getElementById("login-screen").style.display = "flex";
+              document.getElementById("main-app").style.display = "none";
+            }
+          });
+
+          // ── 데이터 로드 ────────────────────────────────────
+          function setSyncing(v) {
+            const dot = document.getElementById("sync-dot");
+            dot.className = "sync-dot " + (v ? "syncing" : "synced");
+          }
+
+          let unsubRecords = null;
+          let unsubGoals = null;
+
+          function startRealtimeSync(uid) {
+            // 기존 리스너 해제
+            if (unsubRecords) unsubRecords();
+            if (unsubGoals) unsubGoals();
+
+            setSyncing(true);
+
+            // 레코드 실시간 리스너
+            unsubRecords = onSnapshot(
+              collection(db, "users", uid, "records"),
+              (snap) => {
+                cachedRecords = [];
+                snap.forEach((d) => cachedRecords.push(d.data()));
+                cachedRecords.sort((a, b) => b.date.localeCompare(a.date));
+                setSyncing(false);
+                // 현재 화면 갱신
+                const activeScreen = document
+                  .querySelector(".screen.on")
+                  ?.id?.replace("s-", "");
+                if (activeScreen === "home") renderHome();
+                if (activeScreen === "list") renderList();
+                if (activeScreen === "stats") renderStats();
+                if (activeScreen === "goal") renderGoal();
+              },
+              (e) => {
+                toast("동기화 오류");
+                setSyncing(false);
+              },
+            );
+
+            // 목표 실시간 리스너
+            unsubGoals = onSnapshot(
+              doc(db, "users", uid, "meta", "goals"),
+              (snap) => {
+                cachedGoals = snap.exists() ? snap.data() : {};
+              },
+            );
+          }
+
+          async function loadAllData() {
+            startRealtimeSync(currentUser.uid);
+          }
+
+          // ── 저장 ──────────────────────────────────────────
+          async function saveRecordToDB(rec) {
+            setSyncing(true);
+            try {
+              const uid = currentUser.uid;
+              await setDoc(doc(db, "users", uid, "records", rec.date), rec);
+              const idx = cachedRecords.findIndex((r) => r.date === rec.date);
+              if (idx >= 0) cachedRecords[idx] = rec;
+              else cachedRecords.push(rec);
+              cachedRecords.sort((a, b) => b.date.localeCompare(a.date));
+            } catch (e) {
+              toast("저장 실패: " + e.message);
+            }
             setSyncing(false);
-            // 현재 화면 갱신
-            const activeScreen = document
-              .querySelector(".screen.on")
-              ?.id?.replace("s-", "");
-            if (activeScreen === "home") renderHome();
-            if (activeScreen === "list") renderList();
-            if (activeScreen === "stats") renderStats();
-            if (activeScreen === "goal") renderGoal();
-          },
-          (e) => {
-            toast("동기화 오류");
+          }
+
+          async function saveGoalsToDB(goals) {
+            setSyncing(true);
+            try {
+              const uid = currentUser.uid;
+              await setDoc(doc(db, "users", uid, "meta", "goals"), goals);
+              cachedGoals = goals;
+            } catch (e) {
+              toast("목표 저장 실패");
+            }
             setSyncing(false);
-          },
-        );
+          }
 
-        // 목표 실시간 리스너
-        unsubGoals = onSnapshot(
-          doc(db, "users", uid, "meta", "goals"),
-          (snap) => {
-            cachedGoals = snap.exists() ? snap.data() : {};
-          },
-        );
-      }
+          // 포그라운드 복귀시 실시간 재연결
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible" && currentUser) {
+              setSyncing(true);
+              startRealtimeSync(currentUser.uid);
+            }
+          });
 
-      async function loadAllData() {
-        startRealtimeSync(currentUser.uid);
-      }
+          // ── 유틸 ──────────────────────────────────────────
+          const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
+          const WD_DOWS = [1, 2, 3, 4];
+          const LNG_DOWS = [5, 6, 0];
+          let selectedDayoffs = new Set();
+          const HEADERS = {
+            home: "홈",
+            input: "매출 입력",
+            list: "내역",
+            stats: "통계",
+            goal: "목표 설정",
+          };
 
-      // ── 저장 ──────────────────────────────────────────
-      async function saveRecordToDB(rec) {
-        setSyncing(true);
-        try {
-          const uid = currentUser.uid;
-          await setDoc(doc(db, "users", uid, "records", rec.date), rec);
-          const idx = cachedRecords.findIndex((r) => r.date === rec.date);
-          if (idx >= 0) cachedRecords[idx] = rec;
-          else cachedRecords.push(rec);
-          cachedRecords.sort((a, b) => b.date.localeCompare(a.date));
-        } catch (e) {
-          toast("저장 실패: " + e.message);
-        }
-        setSyncing(false);
-      }
+          function fmt(n) {
+            return Number(n).toLocaleString();
+          }
+          function today() {
+            return new Date().toISOString().slice(0, 10);
+          }
+          function monthStart() {
+            return today().slice(0, 7) + "-01";
+          }
+          function currentMonth() {
+            return today().slice(0, 7);
+          }
+          function getRecords() {
+            return cachedRecords;
+          }
+          function getGoals() {
+            return cachedGoals;
+          }
 
-      async function saveGoalsToDB(goals) {
-        setSyncing(true);
-        try {
-          const uid = currentUser.uid;
-          await setDoc(doc(db, "users", uid, "meta", "goals"), goals);
-          cachedGoals = goals;
-        } catch (e) {
-          toast("목표 저장 실패");
-        }
-        setSyncing(false);
-      }
+          function toast(msg) {
+            const el = document.getElementById("toast");
+            el.textContent = msg;
+            el.classList.add("show");
+            setTimeout(() => el.classList.remove("show"), 2000);
+          }
 
-      // 포그라운드 복귀시 실시간 재연결
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && currentUser) {
-          setSyncing(true);
-          startRealtimeSync(currentUser.uid);
-        }
-      });
+          window.go = function (s) {
+            document
+              .querySelectorAll(".tab")
+              .forEach((t, i) =>
+                t.classList.toggle(
+                  "on",
+                  ["home", "input", "list", "stats", "goal"][i] === s,
+                ),
+              );
+            document
+              .querySelectorAll(".screen")
+              .forEach((el) => el.classList.remove("on"));
+            document.getElementById("s-" + s).classList.add("on");
+            document.getElementById("header-title").textContent = HEADERS[s];
+            if (s === "home") renderHome();
+            if (s === "input") {
+              const d = document.getElementById("i-date");
+              if (!d.value) d.value = today();
+              loadExistingRecord(d.value);
+            }
+            if (s === "list") renderList();
+            if (s === "stats") renderStats();
+            if (s === "goal") renderGoal();
+          };
 
-      // ── 유틸 ──────────────────────────────────────────
-      const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
-      const WD_DOWS = [1, 2, 3, 4];
-      const LNG_DOWS = [5, 6, 0];
-      let selectedDayoffs = new Set();
-      const HEADERS = {
-        home: "홈",
-        input: "매출 입력",
-        list: "내역",
-        stats: "통계",
-        goal: "목표 설정",
-      };
+          // ── 홈 ────────────────────────────────────────────
+          function renderHome() {
+            const d = new Date();
+            const dn = ["일", "월", "화", "수", "목", "금", "토"];
+            document.getElementById("home-date").textContent =
+              d.getFullYear() +
+              "년 " +
+              (d.getMonth() + 1) +
+              "월 " +
+              d.getDate() +
+              "일 (" +
+              dn[d.getDay()] +
+              ")";
+            const recs = getRecords().filter((r) => r.date === today());
+            const k = recs.reduce((a, r) => a + (+r.kakao || 0), 0);
+            const c = recs.reduce((a, r) => a + (+r.card || 0), 0);
+            const h = recs.reduce((a, r) => a + (+r.cash || 0), 0);
+            document.getElementById("home-kakao").textContent = fmt(k);
+            document.getElementById("home-card").textContent = fmt(c);
+            document.getElementById("home-cash").textContent = fmt(h);
+            document.getElementById("home-total").textContent =
+              fmt(k + c + h) + "원";
+            // 요일별 평균 계산 (최근 30일)
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().slice(0, 10);
+            const recentRecs = getRecords().filter(r => r.date >= thirtyDaysAgoStr);
+            const dowData = Array.from({ length: 7 }, () => ({ total: 0, cnt: 0, days: 0 }));
+            recentRecs.forEach(r => {
+              const dow = new Date(r.date + "T00:00:00").getDay();
+              dowData[dow].total += r.total;
+              dowData[dow].cnt += +r.totalCnt || 0;
+              dowData[dow].days++;
+            });
+            const maxAvgTotal = Math.max(...dowData.map(d => d.days ? Math.round(d.total / d.days) : 0), 1);
+            const dowBars = dowData.map((d, i) => {
+              const avgT = d.days ? Math.round(d.total / d.days) : 0;
+              const avgC = d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0;
+              const w = Math.round((avgT / maxAvgTotal) * 100);
+              const color = i === 0 ? "#E24B4A" : i === 6 ? "#1a5fa8" : "#2d7a1f";
+              return `<div class="bar-item">
+                <div class="bar-label">
+                  <span style="font-weight:600;color:${color};width:20px;display:inline-block">${DAY_NAMES[i]}</span>
+                  <span style="color:#888;font-size:11px">${d.days}일 운행</span>
+                  <span>${avgT ? fmt(avgT) + "원" : "휴무"}</span><br><span style="font-size:10px;color:#666">${avgC ? avgC + "건" : ""}</span>
+                </div>
+                <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
+              </div>`;
+            }).join("");
+            document.getElementById("home-dow-body").innerHTML = dowBars;
+            const ym = currentMonth(),
+              g = getGoals()[ym];
+            const gc = document.getElementById("home-goal-card");
+            if (!g) {
+              gc.style.display = "none";
+            } else {
+              gc.style.display = "block";
+              const dayoffs = new Set(g.dayoffs || []);
+              const { wd, lng } = countDays(ym, dayoffs);
+              const [y, m] = ym.split("-").map(Number);
+              const lastDay = new Date(y, m, 0).getDate();
+              const from = ym + "-01",
+                to = ym + "-" + String(lastDay).padStart(2, "0");
+              const allRecs = getRecords().filter(
+                (r) => r.date >= from && r.date <= to,
+              );
+              const wdA = allRecs
+                .filter((r) => {
+                  const dow = new Date(r.date + "T00:00:00").getDay();
+                  return WD_DOWS.includes(dow) && !dayoffs.has(dow);
+                })
+                .reduce((a, r) => a + r.total, 0);
+              const lngA = allRecs
+                .filter((r) => {
+                  const dow = new Date(r.date + "T00:00:00").getDay();
+                  return LNG_DOWS.includes(dow) && !dayoffs.has(dow);
+                })
+                .reduce((a, r) => a + r.total, 0);
+              const totalA = wdA + lngA;
+              const monthGoal = wd * (g.wdGoal || 0) + lng * (g.lngGoal || 0);
+              const pct = monthGoal
+                ? Math.min(Math.round((totalA / monthGoal) * 100), 100)
+                : 0;
+              const color = (p) =>
+                p >= 100 ? "#2d7a1f" : p >= 70 ? "#1a5fa8" : "#8a5200";
+              document.getElementById("home-achieve").innerHTML = `
+        <div class="achieve-row"><span>이달 달성률</span><span class="achieve-pct" style="color:${color(pct)}">${pct}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color(pct)}"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-top:4px"><span>${fmt(totalA)}원</span><span>목표 ${fmt(monthGoal)}원</span></div>`;
+            }
 
-      function fmt(n) {
-        return Number(n).toLocaleString();
-      }
-      function today() {
-        return new Date().toISOString().slice(0, 10);
-      }
-      function monthStart() {
-        return today().slice(0, 7) + "-01";
-      }
-      function currentMonth() {
-        return today().slice(0, 7);
-      }
-      function getRecords() {
-        return cachedRecords;
-      }
-      function getGoals() {
-        return cachedGoals;
-      }
+          // ── 입력 ──────────────────────────────────────────
+          function loadExistingRecord(date) {
+            const rec = getRecords().find((r) => r.date === date);
+            document.getElementById("i-kakao").value = rec ? rec.kakao || "" : "";
+            document.getElementById("i-card").value = rec ? rec.card || "" : "";
+            document.getElementById("i-cash").value = rec ? rec.cash || "" : "";
+            document.getElementById("i-kakao-cnt").value = rec
+              ? rec.kakaoCnt || ""
+              : "";
+            document.getElementById("i-card-cnt").value = rec
+              ? rec.cardCnt || ""
+              : "";
+            document.getElementById("i-cash-cnt").value = rec
+              ? rec.cashCnt || ""
+              : "";
+            document.getElementById("i-memo").value = rec ? rec.memo || "" : "";
+            const k = +(rec?.kakao || 0),
+              c = +(rec?.card || 0),
+              h = +(rec?.cash || 0);
+            const kc = +(rec?.kakaoCnt || 0),
+              cc = +(rec?.cardCnt || 0),
+              hc = +(rec?.cashCnt || 0);
+            document.getElementById("i-total").textContent = fmt(k + c + h) + "원";
+            const tc = kc + cc + hc;
+            document.getElementById("i-total-cnt").textContent = tc
+              ? "총 " + tc + "건"
+              : "";
+          }
 
-      function toast(msg) {
-        const el = document.getElementById("toast");
-        el.textContent = msg;
-        el.classList.add("show");
-        setTimeout(() => el.classList.remove("show"), 2000);
-      }
+          document.getElementById("i-date").value = today();
+          loadExistingRecord(today());
 
-      window.go = function (s) {
-        document
-          .querySelectorAll(".tab")
-          .forEach((t, i) =>
-            t.classList.toggle(
-              "on",
-              ["home", "input", "list", "stats", "goal"][i] === s,
-            ),
+          document.getElementById("i-date").addEventListener("change", function () {
+            loadExistingRecord(this.value);
+          });
+          [
+            "i-kakao",
+            "i-card",
+            "i-cash",
+            "i-kakao-cnt",
+            "i-card-cnt",
+            "i-cash-cnt",
+          ].forEach((id) =>
+            document.getElementById(id).addEventListener("input", () => {
+              const k = +document.getElementById("i-kakao").value || 0;
+              const c = +document.getElementById("i-card").value || 0;
+              const h = +document.getElementById("i-cash").value || 0;
+              const kc = +document.getElementById("i-kakao-cnt").value || 0;
+              const cc = +document.getElementById("i-card-cnt").value || 0;
+              const hc = +document.getElementById("i-cash-cnt").value || 0;
+              document.getElementById("i-total").textContent =
+                fmt(k + c + h) + "원";
+              const tc = kc + cc + hc;
+              document.getElementById("i-total-cnt").textContent = tc
+                ? "총 " + tc + "건"
+                : "";
+            }),
           );
-        document
-          .querySelectorAll(".screen")
-          .forEach((el) => el.classList.remove("on"));
-        document.getElementById("s-" + s).classList.add("on");
-        document.getElementById("header-title").textContent = HEADERS[s];
-        if (s === "home") renderHome();
-        if (s === "input") {
-          const d = document.getElementById("i-date");
-          if (!d.value) d.value = today();
-          loadExistingRecord(d.value);
-        }
-        if (s === "list") renderList();
-        if (s === "stats") renderStats();
-        if (s === "goal") renderGoal();
-      };
 
-      // ── 홈 ────────────────────────────────────────────
-      function renderHome() {
-        const d = new Date();
-        const dn = ["일", "월", "화", "수", "목", "금", "토"];
-        document.getElementById("home-date").textContent =
-          d.getFullYear() +
-          "년 " +
-          (d.getMonth() + 1) +
-          "월 " +
-          d.getDate() +
-          "일 (" +
-          dn[d.getDay()] +
-          ")";
-        const recs = getRecords().filter((r) => r.date === today());
-        const k = recs.reduce((a, r) => a + (+r.kakao || 0), 0);
-        const c = recs.reduce((a, r) => a + (+r.card || 0), 0);
-        const h = recs.reduce((a, r) => a + (+r.cash || 0), 0);
-        document.getElementById("home-kakao").textContent = fmt(k);
-        document.getElementById("home-card").textContent = fmt(c);
-        document.getElementById("home-cash").textContent = fmt(h);
-        document.getElementById("home-total").textContent =
-          fmt(k + c + h) + "원";
-        const ym = currentMonth(),
-          g = getGoals()[ym];
-        const gc = document.getElementById("home-goal-card");
-        if (!g) {
-          gc.style.display = "none";
-          return;
-        }
-        gc.style.display = "block";
-        const dayoffs = new Set(g.dayoffs || []);
-        const { wd, lng } = countDays(ym, dayoffs);
-        const [y, m] = ym.split("-").map(Number);
-        const lastDay = new Date(y, m, 0).getDate();
-        const from = ym + "-01",
-          to = ym + "-" + String(lastDay).padStart(2, "0");
-        const allRecs = getRecords().filter(
-          (r) => r.date >= from && r.date <= to,
-        );
-        const wdA = allRecs
-          .filter((r) => {
-            const dow = new Date(r.date + "T00:00:00").getDay();
-            return WD_DOWS.includes(dow) && !dayoffs.has(dow);
-          })
-          .reduce((a, r) => a + r.total, 0);
-        const lngA = allRecs
-          .filter((r) => {
-            const dow = new Date(r.date + "T00:00:00").getDay();
-            return LNG_DOWS.includes(dow) && !dayoffs.has(dow);
-          })
-          .reduce((a, r) => a + r.total, 0);
-        const totalA = wdA + lngA;
-        const monthGoal = wd * (g.wdGoal || 0) + lng * (g.lngGoal || 0);
-        const pct = monthGoal
-          ? Math.min(Math.round((totalA / monthGoal) * 100), 100)
-          : 0;
-        const color = (p) =>
-          p >= 100 ? "#2d7a1f" : p >= 70 ? "#1a5fa8" : "#8a5200";
-        document.getElementById("home-achieve").innerHTML = `
-    <div class="achieve-row"><span>이달 달성률</span><span class="achieve-pct" style="color:${color(pct)}">${pct}%</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color(pct)}"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-top:4px"><span>${fmt(totalA)}원</span><span>목표 ${fmt(monthGoal)}원</span></div>`;
-      }
+          window.saveRecord = async function () {
+            const date = document.getElementById("i-date").value;
+            const kakao = +document.getElementById("i-kakao").value || 0;
+            const card = +document.getElementById("i-card").value || 0;
+            const cash = +document.getElementById("i-cash").value || 0;
+            const kakaoCnt = +document.getElementById("i-kakao-cnt").value || 0;
+            const cardCnt = +document.getElementById("i-card-cnt").value || 0;
+            const cashCnt = +document.getElementById("i-cash-cnt").value || 0;
+            const memo = document.getElementById("i-memo").value.trim();
+            if (!kakao && !card && !cash) {
+              toast("금액을 입력해주세요");
+              return;
+            }
+            const totalCnt = kakaoCnt + cardCnt + cashCnt;
+            const rec = {
+              date,
+              kakao,
+              card,
+              cash,
+              kakaoCnt,
+              cardCnt,
+              cashCnt,
+              totalCnt,
+              memo,
+              total: kakao + card + cash,
+            };
+            await saveRecordToDB(rec);
+            toast("저장됐습니다!");
+            setTimeout(() => go("home"), 800);
+          };
 
-      // ── 입력 ──────────────────────────────────────────
-      function loadExistingRecord(date) {
-        const rec = getRecords().find((r) => r.date === date);
-        document.getElementById("i-kakao").value = rec ? rec.kakao || "" : "";
-        document.getElementById("i-card").value = rec ? rec.card || "" : "";
-        document.getElementById("i-cash").value = rec ? rec.cash || "" : "";
-        document.getElementById("i-kakao-cnt").value = rec
-          ? rec.kakaoCnt || ""
-          : "";
-        document.getElementById("i-card-cnt").value = rec
-          ? rec.cardCnt || ""
-          : "";
-        document.getElementById("i-cash-cnt").value = rec
-          ? rec.cashCnt || ""
-          : "";
-        document.getElementById("i-memo").value = rec ? rec.memo || "" : "";
-        const k = +(rec?.kakao || 0),
-          c = +(rec?.card || 0),
-          h = +(rec?.cash || 0);
-        const kc = +(rec?.kakaoCnt || 0),
-          cc = +(rec?.cardCnt || 0),
-          hc = +(rec?.cashCnt || 0);
-        document.getElementById("i-total").textContent = fmt(k + c + h) + "원";
-        const tc = kc + cc + hc;
-        document.getElementById("i-total-cnt").textContent = tc
-          ? "총 " + tc + "건"
-          : "";
-      }
+          // ── 내역 ──────────────────────────────────────────
+          const lFrom = document.getElementById("l-from"),
+            lTo = document.getElementById("l-to");
+          lFrom.value = monthStart();
+          lTo.value = today();
 
-      document.getElementById("i-date").value = today();
-      loadExistingRecord(today());
+          window.renderList = function () {
+            const from = lFrom.value,
+              to = lTo.value;
+            const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
+            const el = document.getElementById("list-body");
+            if (!recs.length) {
+              el.innerHTML = '<div class="empty">해당 기간 내역 없음</div>';
+              return;
+            }
+            el.innerHTML = recs
+              .map(
+                (r) => `
+        <div class="list-card">
+          <div><div class="list-date">${r.date}</div><div class="list-sub">${r.memo || ""}</div></div>
+          <div style="text-align:right">
+            <div class="list-amount">${fmt(r.total)}원 ${r.totalCnt ? '<span style="font-size:12px;color:#888;font-weight:400">' + r.totalCnt + "건</span>" : ""}</div>
+            <div class="badges">
+              ${r.kakao ? `<span class="badge" style="background:#e8f5e0;color:#2d7a1f">${fmt(r.kakao)}${r.kakaoCnt ? " " + r.kakaoCnt + "건" : ""}</span>` : ""}
+              ${r.card ? `<span class="badge" style="background:#e0eeff;color:#1a5fa8">${fmt(r.card)}${r.cardCnt ? " " + r.cardCnt + "건" : ""}</span>` : ""}
+              ${r.cash ? `<span class="badge" style="background:#fff3e0;color:#8a5200">${fmt(r.cash)}${r.cashCnt ? " " + r.cashCnt + "건" : ""}</span>` : ""}
+            </div>
+          </div>
+        </div>`,
+              )
+              .join("");
+          };
 
-      document.getElementById("i-date").addEventListener("change", function () {
-        loadExistingRecord(this.value);
-      });
-      [
-        "i-kakao",
-        "i-card",
-        "i-cash",
-        "i-kakao-cnt",
-        "i-card-cnt",
-        "i-cash-cnt",
-      ].forEach((id) =>
-        document.getElementById(id).addEventListener("input", () => {
-          const k = +document.getElementById("i-kakao").value || 0;
-          const c = +document.getElementById("i-card").value || 0;
-          const h = +document.getElementById("i-cash").value || 0;
-          const kc = +document.getElementById("i-kakao-cnt").value || 0;
-          const cc = +document.getElementById("i-card-cnt").value || 0;
-          const hc = +document.getElementById("i-cash-cnt").value || 0;
-          document.getElementById("i-total").textContent =
-            fmt(k + c + h) + "원";
-          const tc = kc + cc + hc;
-          document.getElementById("i-total-cnt").textContent = tc
-            ? "총 " + tc + "건"
-            : "";
-        }),
-      );
+          // ── 통계 ──────────────────────────────────────────
+          const tFrom = document.getElementById("t-from"),
+            tTo = document.getElementById("t-to");
+          tFrom.value = monthStart();
+          tTo.value = today();
 
-      window.saveRecord = async function () {
-        const date = document.getElementById("i-date").value;
-        const kakao = +document.getElementById("i-kakao").value || 0;
-        const card = +document.getElementById("i-card").value || 0;
-        const cash = +document.getElementById("i-cash").value || 0;
-        const kakaoCnt = +document.getElementById("i-kakao-cnt").value || 0;
-        const cardCnt = +document.getElementById("i-card-cnt").value || 0;
-        const cashCnt = +document.getElementById("i-cash-cnt").value || 0;
-        const memo = document.getElementById("i-memo").value.trim();
-        if (!kakao && !card && !cash) {
-          toast("금액을 입력해주세요");
-          return;
-        }
-        const totalCnt = kakaoCnt + cardCnt + cashCnt;
-        const rec = {
-          date,
-          kakao,
-          card,
-          cash,
-          kakaoCnt,
-          cardCnt,
-          cashCnt,
-          totalCnt,
-          memo,
-          total: kakao + card + cash,
-        };
-        await saveRecordToDB(rec);
-        toast("저장됐습니다!");
-        setTimeout(() => go("home"), 800);
-      };
+          window.setRange = function (t) {
+            const d = new Date();
+            if (t === "month") {
+              tFrom.value = today().slice(0, 7) + "-01";
+              tTo.value = today();
+            } else {
+              const day = d.getDay() || 7;
+              const mon = new Date(d);
+              mon.setDate(d.getDate() - day + 1);
+              tFrom.value = mon.toISOString().slice(0, 10);
+              tTo.value = today();
+            }
+            renderStats();
+          };
 
-      // ── 내역 ──────────────────────────────────────────
-      const lFrom = document.getElementById("l-from"),
-        lTo = document.getElementById("l-to");
-      lFrom.value = monthStart();
-      lTo.value = today();
+          window.renderStats = function () {
+            const from = tFrom.value,
+              to = tTo.value;
+            const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
+            const el = document.getElementById("stats-body");
+            if (!recs.length) {
+              el.innerHTML =
+                '<div class="card"><div class="empty">해당 기간 내역 없음</div></div>';
+              return;
+            }
+            const total = recs.reduce((a, r) => a + r.total, 0);
+            const kakao = recs.reduce((a, r) => a + (+r.kakao || 0), 0);
+            const card = recs.reduce((a, r) => a + (+r.card || 0), 0);
+            const cash = recs.reduce((a, r) => a + (+r.cash || 0), 0);
+            const kakaoCnt = recs.reduce((a, r) => a + (+r.kakaoCnt || 0), 0);
+            const cardCnt = recs.reduce((a, r) => a + (+r.cardCnt || 0), 0);
+            const cashCnt = recs.reduce((a, r) => a + (+r.cashCnt || 0), 0);
+            const totalCnt = kakaoCnt + cardCnt + cashCnt;
+            const days = recs.length,
+              avg = days ? Math.round(total / days) : 0;
+            const avgCnt =
+              totalCnt && days ? Math.round((totalCnt / days) * 10) / 10 : 0;
+            const pct = (v) => (total ? Math.round((v / total) * 100) : 0);
+            const pctCnt = (v) => (totalCnt ? Math.round((v / totalCnt) * 100) : 0);
 
-      window.renderList = function () {
-        const from = lFrom.value,
-          to = lTo.value;
-        const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
-        const el = document.getElementById("list-body");
-        if (!recs.length) {
-          el.innerHTML = '<div class="empty">해당 기간 내역 없음</div>';
-          return;
-        }
-        el.innerHTML = recs
-          .map(
-            (r) => `
-    <div class="list-card">
-      <div><div class="list-date">${r.date}</div><div class="list-sub">${r.memo || ""}</div></div>
-      <div style="text-align:right">
-        <div class="list-amount">${fmt(r.total)}원 ${r.totalCnt ? '<span style="font-size:12px;color:#888;font-weight:400">' + r.totalCnt + "건</span>" : ""}</div>
-        <div class="badges">
-          ${r.kakao ? `<span class="badge" style="background:#e8f5e0;color:#2d7a1f">${fmt(r.kakao)}${r.kakaoCnt ? " " + r.kakaoCnt + "건" : ""}</span>` : ""}
-          ${r.card ? `<span class="badge" style="background:#e0eeff;color:#1a5fa8">${fmt(r.card)}${r.cardCnt ? " " + r.cardCnt + "건" : ""}</span>` : ""}
-          ${r.cash ? `<span class="badge" style="background:#fff3e0;color:#8a5200">${fmt(r.cash)}${r.cashCnt ? " " + r.cashCnt + "건" : ""}</span>` : ""}
+            // 요일별 집계
+            const dowNames = ["일", "월", "화", "수", "목", "금", "토"];
+            const dowData = Array.from({ length: 7 }, () => ({
+              total: 0,
+              cnt: 0,
+              days: 0,
+            }));
+            recs.forEach((r) => {
+              const dow = new Date(r.date + "T00:00:00").getDay();
+              dowData[dow].total += r.total;
+              dowData[dow].cnt += +r.totalCnt || 0;
+              dowData[dow].days++;
+            });
+            const maxAvgTotal = Math.max(
+              ...dowData.map((d) => (d.days ? Math.round(d.total / d.days) : 0)),
+              1,
+            );
+            const dowBars = dowData
+              .map((d, i) => {
+                const avgT = d.days ? Math.round(d.total / d.days) : 0;
+                const avgC = d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0;
+                const w = Math.round((avgT / maxAvgTotal) * 100);
+                const color = i === 0 ? "#E24B4A" : i === 6 ? "#1a5fa8" : "#2d7a1f";
+                return `<div class="bar-item">
+          <div class="bar-label">
+            <span style="font-weight:600;color:${color};width:20px;display:inline-block">${dowNames[i]}</span>
+            <span style="color:#888;font-size:11px">${d.days}일 운행</span>
+            <span>${avgT ? fmt(avgT) + "원" : "휴무"} ${avgC ? avgC + "건" : ""}</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
+        </div>`;
+              })
+              .join("");
+
+            el.innerHTML = `
+      <div class="card">
+        <div class="card-title">기간 합계 (${days}일)</div>
+        <div class="stat-row"><span style="color:#888">총 매출</span><span style="font-weight:700">${fmt(total)}원</span></div>
+        <div class="stat-row"><span style="color:#888">총 건수</span><span style="font-weight:700">${totalCnt ? totalCnt + "건" : "-"}</span></div>
+        <div class="stat-row"><span style="color:#888">일 평균 매출</span><span style="font-weight:700">${fmt(avg)}원</span></div>
+        <div class="stat-row"><span style="color:#888">일 평균 건수</span><span style="font-weight:700">${avgCnt ? avgCnt + "건" : "-"}</span></div>
+        <div class="stat-row"><span style="color:#888">최고 매출일</span><span style="font-weight:700">${recs.reduce((a, r) => (r.total > a.total ? r : a), recs[0]).date}</span></div>
+      </div>
+      <div class="card">
+        <div class="card-title">결제 수단별</div>
+        <div style="margin-top:8px">
+          <div class="bar-item"><div class="bar-label"><span class="amount-tag kakao-tag">카카오T</span><span>${fmt(kakao)}원 / ${kakaoCnt}건 (${pct(kakao)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(kakao)}%;background:#2d7a1f"></div></div></div>
+          <div class="bar-item"><div class="bar-label"><span class="amount-tag card-tag">카드</span><span>${fmt(card)}원 / ${cardCnt}건 (${pct(card)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(card)}%;background:#1a5fa8"></div></div></div>
+          <div class="bar-item"><div class="bar-label"><span class="amount-tag cash-tag">현금</span><span>${fmt(cash)}원 / ${cashCnt}건 (${pct(cash)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(cash)}%;background:#8a5200"></div></div></div>
         </div>
       </div>
-    </div>`,
-          )
-          .join("");
-      };
-
-      // ── 통계 ──────────────────────────────────────────
-      const tFrom = document.getElementById("t-from"),
-        tTo = document.getElementById("t-to");
-      tFrom.value = monthStart();
-      tTo.value = today();
-
-      window.setRange = function (t) {
-        const d = new Date();
-        if (t === "month") {
-          tFrom.value = today().slice(0, 7) + "-01";
-          tTo.value = today();
-        } else {
-          const day = d.getDay() || 7;
-          const mon = new Date(d);
-          mon.setDate(d.getDate() - day + 1);
-          tFrom.value = mon.toISOString().slice(0, 10);
-          tTo.value = today();
-        }
-        renderStats();
-      };
-
-      window.renderStats = function () {
-        const from = tFrom.value,
-          to = tTo.value;
-        const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
-        const el = document.getElementById("stats-body");
-        if (!recs.length) {
-          el.innerHTML =
-            '<div class="card"><div class="empty">해당 기간 내역 없음</div></div>';
-          return;
-        }
-        const total = recs.reduce((a, r) => a + r.total, 0);
-        const kakao = recs.reduce((a, r) => a + (+r.kakao || 0), 0);
-        const card = recs.reduce((a, r) => a + (+r.card || 0), 0);
-        const cash = recs.reduce((a, r) => a + (+r.cash || 0), 0);
-        const kakaoCnt = recs.reduce((a, r) => a + (+r.kakaoCnt || 0), 0);
-        const cardCnt = recs.reduce((a, r) => a + (+r.cardCnt || 0), 0);
-        const cashCnt = recs.reduce((a, r) => a + (+r.cashCnt || 0), 0);
-        const totalCnt = kakaoCnt + cardCnt + cashCnt;
-        const days = recs.length,
-          avg = days ? Math.round(total / days) : 0;
-        const avgCnt =
-          totalCnt && days ? Math.round((totalCnt / days) * 10) / 10 : 0;
-        const pct = (v) => (total ? Math.round((v / total) * 100) : 0);
-        const pctCnt = (v) => (totalCnt ? Math.round((v / totalCnt) * 100) : 0);
-
-        // 요일별 집계
-        const dowNames = ["일", "월", "화", "수", "목", "금", "토"];
-        const dowData = Array.from({ length: 7 }, () => ({
-          total: 0,
-          cnt: 0,
-          days: 0,
-        }));
-        recs.forEach((r) => {
-          const dow = new Date(r.date + "T00:00:00").getDay();
-          dowData[dow].total += r.total;
-          dowData[dow].cnt += +r.totalCnt || 0;
-          dowData[dow].days++;
-        });
-        const maxAvgTotal = Math.max(
-          ...dowData.map((d) => (d.days ? Math.round(d.total / d.days) : 0)),
-          1,
-        );
-        const dowBars = dowData
-          .map((d, i) => {
-            const avgT = d.days ? Math.round(d.total / d.days) : 0;
-            const avgC = d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0;
-            const w = Math.round((avgT / maxAvgTotal) * 100);
-            const color = i === 0 ? "#E24B4A" : i === 6 ? "#1a5fa8" : "#2d7a1f";
-            return `<div class="bar-item">
-      <div class="bar-label">
-        <span style="font-weight:600;color:${color};width:20px;display:inline-block">${dowNames[i]}</span>
-        <span style="color:#888;font-size:11px">${d.days}일 운행</span>
-        <span>${avgT ? fmt(avgT) + "원" : "휴무"} ${avgC ? avgC + "건" : ""}</span>
-      </div>
-      <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
-    </div>`;
-          })
-          .join("");
-
-        el.innerHTML = `
-  <div class="card">
-    <div class="card-title">기간 합계 (${days}일)</div>
-    <div class="stat-row"><span style="color:#888">총 매출</span><span style="font-weight:700">${fmt(total)}원</span></div>
-    <div class="stat-row"><span style="color:#888">총 건수</span><span style="font-weight:700">${totalCnt ? totalCnt + "건" : "-"}</span></div>
-    <div class="stat-row"><span style="color:#888">일 평균 매출</span><span style="font-weight:700">${fmt(avg)}원</span></div>
-    <div class="stat-row"><span style="color:#888">일 평균 건수</span><span style="font-weight:700">${avgCnt ? avgCnt + "건" : "-"}</span></div>
-    <div class="stat-row"><span style="color:#888">최고 매출일</span><span style="font-weight:700">${recs.reduce((a, r) => (r.total > a.total ? r : a), recs[0]).date}</span></div>
-  </div>
-  <div class="card">
-    <div class="card-title">결제 수단별</div>
-    <div style="margin-top:8px">
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag kakao-tag">카카오T</span><span>${fmt(kakao)}원 / ${kakaoCnt}건 (${pct(kakao)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(kakao)}%;background:#2d7a1f"></div></div></div>
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag card-tag">카드</span><span>${fmt(card)}원 / ${cardCnt}건 (${pct(card)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(card)}%;background:#1a5fa8"></div></div></div>
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag cash-tag">현금</span><span>${fmt(cash)}원 / ${cashCnt}건 (${pct(cash)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(cash)}%;background:#8a5200"></div></div></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title">요일별 평균 매출·건수</div>
-    <div style="margin-top:8px">${dowBars}</div>
-    <div style="font-size:11px;color:#aaa;margin-top:8px;text-align:right">막대 = 평균 매출 기준</div>
-  </div>`;
-      };
-
-      // ── 목표 ──────────────────────────────────────────
-      function countDays(ym, dayoffs) {
-        const [y, m] = ym.split("-").map(Number);
-        const days = new Date(y, m, 0).getDate();
-        let wd = 0,
-          lng = 0;
-        for (let d = 1; d <= days; d++) {
-          const dow = new Date(y, m - 1, d).getDay();
-          if (dayoffs.has(dow)) continue;
-          if (WD_DOWS.includes(dow)) wd++;
-          else if (LNG_DOWS.includes(dow)) lng++;
-        }
-        return { wd, lng, total: wd + lng };
-      }
-
-      function buildDayoffButtons() {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const [y, m] = ym.split("-").map(Number);
-        const daysInMonth = new Date(y, m, 0).getDate();
-        const dc = [0, 0, 0, 0, 0, 0, 0];
-        for (let d = 1; d <= daysInMonth; d++)
-          dc[new Date(y, m - 1, d).getDay()]++;
-        function makeBtn(dow, group) {
-          const btn = document.createElement("button");
-          btn.className = "dayoff-btn";
-          btn.innerHTML =
-            DAY_NAMES[dow] +
-            '<br><span style="font-size:10px;font-weight:400">' +
-            dc[dow] +
-            "주</span>";
-          if (dc[dow] === 0) btn.classList.add("off");
-          if (selectedDayoffs.has(dow)) btn.classList.add("sel-" + group);
-          btn.onclick = () => {
-            if (selectedDayoffs.has(dow)) {
-              selectedDayoffs.delete(dow);
-              btn.className = "dayoff-btn";
-            } else {
-              selectedDayoffs.add(dow);
-              btn.classList.add("sel-" + group);
-            }
-            updateDayoffNote();
-            calcDayCounts();
-            calcGoalPreview();
+      <div class="card">
+        <div class="card-title">요일별 평균 매출·건수</div>
+        <div style="margin-top:8px">${dowBars}</div>
+        <div style="font-size:11px;color:#aaa;margin-top:8px;text-align:right">막대 = 평균 매출 기준</div>
+      </div>`;
           };
-          return btn;
-        }
-        const ww = document.getElementById("wd-btns"),
-          lw = document.getElementById("lng-btns");
-        ww.innerHTML = "";
-        lw.innerHTML = "";
-        WD_DOWS.forEach((d) => ww.appendChild(makeBtn(d, "wd")));
-        LNG_DOWS.forEach((d) => lw.appendChild(makeBtn(d, "lng")));
-        updateDayoffNote();
-      }
 
-      function updateDayoffNote() {
-        const el = document.getElementById("dayoff-note");
-        if (selectedDayoffs.size === 0) {
-          el.textContent = "";
-          return;
-        }
-        const order = [1, 2, 3, 4, 5, 6, 0];
-        el.textContent =
-          "매주 " +
-          [...selectedDayoffs]
-            .sort((a, b) => order.indexOf(a) - order.indexOf(b))
-            .map((d) => DAY_NAMES[d])
-            .join("·") +
-          " 휴무 적용";
-      }
+          // ── 목표 ──────────────────────────────────────────
+          function countDays(ym, dayoffs) {
+            const [y, m] = ym.split("-").map(Number);
+            const days = new Date(y, m, 0).getDate();
+            let wd = 0,
+              lng = 0;
+            for (let d = 1; d <= days; d++) {
+              const dow = new Date(y, m - 1, d).getDay();
+              if (dayoffs.has(dow)) continue;
+              if (WD_DOWS.includes(dow)) wd++;
+              else if (LNG_DOWS.includes(dow)) lng++;
+            }
+            return { wd, lng, total: wd + lng };
+          }
 
-      function calcDayCounts() {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const { wd, lng, total } = countDays(ym, selectedDayoffs);
-        document.getElementById("g-wd-count").textContent = wd;
-        document.getElementById("g-lng-count").textContent = lng;
-        document.getElementById("g-total-days").textContent = total;
-      }
+          function buildDayoffButtons() {
+            const ym = document.getElementById("g-month").value || currentMonth();
+            const [y, m] = ym.split("-").map(Number);
+            const daysInMonth = new Date(y, m, 0).getDate();
+            const dc = [0, 0, 0, 0, 0, 0, 0];
+            for (let d = 1; d <= daysInMonth; d++)
+              dc[new Date(y, m - 1, d).getDay()]++;
+            function makeBtn(dow, group) {
+              const btn = document.createElement("button");
+              btn.className = "dayoff-btn";
+              btn.innerHTML =
+                DAY_NAMES[dow] +
+                '<br><span style="font-size:10px;font-weight:400">' +
+                dc[dow] +
+                "주</span>";
+              if (dc[dow] === 0) btn.classList.add("off");
+              if (selectedDayoffs.has(dow)) btn.classList.add("sel-" + group);
+              btn.onclick = () => {
+                if (selectedDayoffs.has(dow)) {
+                  selectedDayoffs.delete(dow);
+                  btn.className = "dayoff-btn";
+                } else {
+                  selectedDayoffs.add(dow);
+                  btn.classList.add("sel-" + group);
+                }
+                updateDayoffNote();
+                calcDayCounts();
+                calcGoalPreview();
+              };
+              return btn;
+            }
+            const ww = document.getElementById("wd-btns"),
+              lw = document.getElementById("lng-btns");
+            ww.innerHTML = "";
+            lw.innerHTML = "";
+            WD_DOWS.forEach((d) => ww.appendChild(makeBtn(d, "wd")));
+            LNG_DOWS.forEach((d) => lw.appendChild(makeBtn(d, "lng")));
+            updateDayoffNote();
+          }
 
-      function calcGoalPreview() {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const { wd, lng } = countDays(ym, selectedDayoffs);
-        const wg = +document.getElementById("g-wd-goal").value || 0;
-        const lg = +document.getElementById("g-lng-goal").value || 0;
-        const wt = wd * wg,
-          lt = lng * lg,
-          mt = wt + lt;
-        document.getElementById("g-wd-total").textContent = wt
-          ? fmt(wt) + "원"
-          : "-";
-        document.getElementById("g-lng-total").textContent = lt
-          ? fmt(lt) + "원"
-          : "-";
-        document.getElementById("g-month-total").textContent = mt
-          ? fmt(mt) + "원"
-          : "-";
-      }
+          function updateDayoffNote() {
+            const el = document.getElementById("dayoff-note");
+            if (selectedDayoffs.size === 0) {
+              el.textContent = "";
+              return;
+            }
+            const order = [1, 2, 3, 4, 5, 6, 0];
+            el.textContent =
+              "매주 " +
+              [...selectedDayoffs]
+                .sort((a, b) => order.indexOf(a) - order.indexOf(b))
+                .map((d) => DAY_NAMES[d])
+                .join("·") +
+              " 휴무 적용";
+          }
 
-      const gMonth = document.getElementById("g-month");
-      gMonth.value = currentMonth();
-      gMonth.addEventListener("change", () => {
-        selectedDayoffs = new Set();
-        renderGoal();
-      });
-      ["g-wd-goal", "g-lng-goal"].forEach((id) =>
-        document.getElementById(id).addEventListener("input", calcGoalPreview),
-      );
+          function calcDayCounts() {
+            const ym = document.getElementById("g-month").value || currentMonth();
+            const { wd, lng, total } = countDays(ym, selectedDayoffs);
+            document.getElementById("g-wd-count").textContent = wd;
+            document.getElementById("g-lng-count").textContent = lng;
+            document.getElementById("g-total-days").textContent = total;
+          }
 
-      function renderGoal() {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const g = getGoals()[ym] || {};
-        selectedDayoffs = g.dayoffs ? new Set(g.dayoffs) : new Set();
-        buildDayoffButtons();
-        calcDayCounts();
-        document.getElementById("g-wd-goal").value = g.wdGoal || "";
-        document.getElementById("g-lng-goal").value = g.lngGoal || "";
-        calcGoalPreview();
-        renderAchieve(ym);
-      }
+          function calcGoalPreview() {
+            const ym = document.getElementById("g-month").value || currentMonth();
+            const { wd, lng } = countDays(ym, selectedDayoffs);
+            const wg = +document.getElementById("g-wd-goal").value || 0;
+            const lg = +document.getElementById("g-lng-goal").value || 0;
+            const wt = wd * wg,
+              lt = lng * lg,
+              mt = wt + lt;
+            document.getElementById("g-wd-total").textContent = wt
+              ? fmt(wt) + "원"
+              : "-";
+            document.getElementById("g-lng-total").textContent = lt
+              ? fmt(lt) + "원"
+              : "-";
+            document.getElementById("g-month-total").textContent = mt
+              ? fmt(mt) + "원"
+              : "-";
+          }
 
-      window.saveGoal = async function () {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const wdGoal = +document.getElementById("g-wd-goal").value || 0;
-        const lngGoal = +document.getElementById("g-lng-goal").value || 0;
-        if (!wdGoal && !lngGoal) {
-          toast("목표 금액을 입력해주세요");
-          return;
-        }
-        const goals = { ...getGoals() };
-        goals[ym] = { wdGoal, lngGoal, dayoffs: [...selectedDayoffs] };
-        await saveGoalsToDB(goals);
-        renderAchieve(ym);
-        toast("목표가 저장됐습니다!");
-      };
+          const gMonth = document.getElementById("g-month");
+          gMonth.value = currentMonth();
+          gMonth.addEventListener("change", () => {
+            selectedDayoffs = new Set();
+            renderGoal();
+          });
+          ["g-wd-goal", "g-lng-goal"].forEach((id) =>
+            document.getElementById(id).addEventListener("input", calcGoalPreview),
+          );
 
-      function renderAchieve(ym) {
-        const g = getGoals()[ym];
-        const el = document.getElementById("achieve-body");
-        if (!g) {
-          el.innerHTML =
-            '<div class="empty">목표를 저장하면 달성률이 표시됩니다</div>';
-          return;
-        }
-        const dayoffs = new Set(g.dayoffs || []);
-        const { wd, lng } = countDays(ym, dayoffs);
-        const [y, m] = ym.split("-").map(Number);
-        const lastDay = new Date(y, m, 0).getDate();
-        const from = ym + "-01",
-          to = ym + "-" + String(lastDay).padStart(2, "0");
-        const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
-        const wdRecs = recs.filter((r) => {
-          const dow = new Date(r.date + "T00:00:00").getDay();
-          return WD_DOWS.includes(dow) && !dayoffs.has(dow);
-        });
-        const lngRecs = recs.filter((r) => {
-          const dow = new Date(r.date + "T00:00:00").getDay();
-          return LNG_DOWS.includes(dow) && !dayoffs.has(dow);
-        });
-        const wdA = wdRecs.reduce((a, r) => a + r.total, 0);
-        const lngA = lngRecs.reduce((a, r) => a + r.total, 0);
-        const totalA = wdA + lngA;
-        const wdGT = wd * (g.wdGoal || 0),
-          lngGT = lng * (g.lngGoal || 0),
-          monthGT = wdGT + lngGT;
-        const pct = (v) => Math.min(Math.round(v), 100);
-        const wdP = wdGT ? pct((wdA / wdGT) * 100) : 0,
-          lngP = lngGT ? pct((lngA / lngGT) * 100) : 0,
-          totP = monthGT ? pct((totalA / monthGT) * 100) : 0;
-        const color = (p) =>
-          p >= 100 ? "#2d7a1f" : p >= 70 ? "#1a5fa8" : "#8a5200";
-        const order = [1, 2, 3, 4, 5, 6, 0];
-        const dn = [...dayoffs]
-          .sort((a, b) => order.indexOf(a) - order.indexOf(b))
-          .map((d) => DAY_NAMES[d])
-          .join("·");
-        el.innerHTML = `
-    ${dn ? `<div style="font-size:12px;color:#888;margin-bottom:10px">휴무 제외: 매주 ${dn}</div>` : ""}
-    <div class="achieve-row"><span>월 전체</span><span class="achieve-pct" style="color:${color(totP)}">${totP}%</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:${totP}%;background:${color(totP)}"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:14px"><span>${fmt(totalA)}원</span><span>목표 ${fmt(monthGT)}원</span></div>
-    <hr style="border:none;border-top:1px solid #f0f0f0;margin:10px 0">
-    <div class="achieve-row" style="margin-top:10px"><span><span class="amount-tag week-tag">일반영업</span></span><span class="achieve-pct" style="color:${color(wdP)}">${wdP}%</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:${wdP}%;background:#1a5fa8"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:10px"><span>${fmt(wdA)}원 (${wdRecs.length}일 / 목표 ${wd}일)</span><span>목표 ${fmt(wdGT)}원</span></div>
-    <div class="achieve-row"><span><span class="amount-tag long-tag">12시간영업</span></span><span class="achieve-pct" style="color:${color(lngP)}">${lngP}%</span></div>
-    <div class="progress-track"><div class="progress-fill" style="width:${lngP}%;background:#8a5200"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:#888"><span>${fmt(lngA)}원 (${lngRecs.length}일 / 목표 ${lng}일)</span><span>목표 ${fmt(lngGT)}원</span></div>`;
-      }
+          function renderGoal() {
+            const ym = document.getElementById("g-month").value || currentMonth();
+            const g = getGoals()[ym] || {};
+            selectedDayoffs = g.dayoffs ? new Set(g.dayoffs) : new Set();
+            buildDayoffButtons();
+            calcDayCounts();
+            document.getElementById("g-wd-goal").value = g.wdGoal || "";
+            document.getElementById("g-lng-goal").value = g.lngGoal || "";
+            calcGoalPreview();
+            renderAchieve(ym);
+          }
 
-      // ── CSV ───────────────────────────────────────────
-      window.exportCSV = function () {
-        const from = tFrom.value,
-          to = tTo.value;
-        const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
-        if (!recs.length) {
-          toast("내보낼 데이터가 없습니다");
-          return;
-        }
-        const csv =
-          "\uFEFF날짜,카카오T,카드,현금,합계,메모\n" +
-          recs
-            .map((r) =>
-              [r.date, r.kakao, r.card, r.cash, r.total, r.memo || ""].join(
-                ",",
-              ),
-            )
-            .join("\n");
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(
-          new Blob([csv], { type: "text/csv;charset=utf-8" }),
-        );
-        a.download = "택시매출_" + from + "_" + to + ".csv";
-        a.click();
-        toast("CSV 저장됐습니다!");
-      };
+          window.saveGoal = async function () {
+            const ym = document.getElementById("g-month").value || currentMonth();
+            const wdGoal = +document.getElementById("g-wd-goal").value || 0;
+            const lngGoal = +document.getElementById("g-lng-goal").value || 0;
+            if (!wdGoal && !lngGoal) {
+              toast("목표 금액을 입력해주세요");
+              return;
+            }
+            const goals = { ...getGoals() };
+            goals[ym] = { wdGoal, lngGoal, dayoffs: [...selectedDayoffs] };
+            await saveGoalsToDB(goals);
+            renderAchieve(ym);
+            toast("목표가 저장됐습니다!");
+          };
+
+          function renderAchieve(ym) {
+            const g = getGoals()[ym];
+            const el = document.getElementById("achieve-body");
+            if (!g) {
+              el.innerHTML =
+                '<div class="empty">목표를 저장하면 달성률이 표시됩니다</div>';
+              return;
+            }
+            const dayoffs = new Set(g.dayoffs || []);
+            const { wd, lng } = countDays(ym, dayoffs);
+            const [y, m] = ym.split("-").map(Number);
+            const lastDay = new Date(y, m, 0).getDate();
+            const from = ym + "-01",
+              to = ym + "-" + String(lastDay).padStart(2, "0");
+            const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
+            const wdRecs = recs.filter((r) => {
+              const dow = new Date(r.date + "T00:00:00").getDay();
+              return WD_DOWS.includes(dow) && !dayoffs.has(dow);
+            });
+            const lngRecs = recs.filter((r) => {
+              const dow = new Date(r.date + "T00:00:00").getDay();
+              return LNG_DOWS.includes(dow) && !dayoffs.has(dow);
+            });
+            const wdA = wdRecs.reduce((a, r) => a + r.total, 0);
+            const lngA = lngRecs.reduce((a, r) => a + r.total, 0);
+            const totalA = wdA + lngA;
+            const wdGT = wd * (g.wdGoal || 0),
+              lngGT = lng * (g.lngGoal || 0),
+              monthGT = wdGT + lngGT;
+            const pct = (v) => Math.min(Math.round(v), 100);
+            const wdP = wdGT ? pct((wdA / wdGT) * 100) : 0,
+              lngP = lngGT ? pct((lngA / lngGT) * 100) : 0,
+              totP = monthGT ? pct((totalA / monthGT) * 100) : 0;
+            const color = (p) =>
+              p >= 100 ? "#2d7a1f" : p >= 70 ? "#1a5fa8" : "#8a5200";
+            const order = [1, 2, 3, 4, 5, 6, 0];
+            const dn = [...dayoffs]
+              .sort((a, b) => order.indexOf(a) - order.indexOf(b))
+              .map((d) => DAY_NAMES[d])
+              .join("·");
+            el.innerHTML = `
+        ${dn ? `<div style="font-size:12px;color:#888;margin-bottom:10px">휴무 제외: 매주 ${dn}</div>` : ""}
+        <div class="achieve-row"><span>월 전체</span><span class="achieve-pct" style="color:${color(totP)}">${totP}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${totP}%;background:${color(totP)}"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:14px"><span>${fmt(totalA)}원</span><span>목표 ${fmt(monthGT)}원</span></div>
+        <hr style="border:none;border-top:1px solid #f0f0f0;margin:10px 0">
+        <div class="achieve-row" style="margin-top:10px"><span><span class="amount-tag week-tag">일반영업</span></span><span class="achieve-pct" style="color:${color(wdP)}">${wdP}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${wdP}%;background:#1a5fa8"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:10px"><span>${fmt(wdA)}원 (${wdRecs.length}일 / 목표 ${wd}일)</span><span>목표 ${fmt(wdGT)}원</span></div>
+        <div class="achieve-row"><span><span class="amount-tag long-tag">12시간영업</span></span><span class="achieve-pct" style="color:${color(lngP)}">${lngP}%</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:${lngP}%;background:#8a5200"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#888"><span>${fmt(lngA)}원 (${lngRecs.length}일 / 목표 ${lng}일)</span><span>목표 ${fmt(lngGT)}원</span></div>`;
+          }
+
+          // ── CSV ───────────────────────────────────────────
+          window.exportCSV = function () {
+            const from = tFrom.value,
+              to = tTo.value;
+            const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
+            if (!recs.length) {
+              toast("내보낼 데이터가 없습니다");
+              return;
+            }
+            const csv =
+              "\uFEFF날짜,카카오T,카드,현금,합계,메모\n" +
+              recs
+                .map((r) =>
+                  [r.date, r.kakao, r.card, r.cash, r.total, r.memo || ""].join(
+                    ",",
+                  ),
+                )
+                .join("\n");
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(
+              new Blob([csv], { type: "text/csv;charset=utf-8" }),
+            );
+            a.download = "택시매출_" + from + "_" + to + ".csv";
+            a.click();
+            toast("CSV 저장됐습니다!");
+          };
     </script>
   </body>
 </html>
