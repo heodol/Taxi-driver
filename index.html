@@ -1,1842 +1,765 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
-    <meta name="theme-color" content="#ffffff" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="택시매출" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="apple-touch-icon" href="icon.png" />
-    <title>택시 매출 관리</title>
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        -webkit-tap-highlight-color: transparent;
-      }
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #f5f5f5;
-        color: #111;
-        min-height: 100vh;
-      }
-      .app {
-        max-width: 480px;
-        margin: 0 auto;
-        padding: 0 0 80px;
-      }
-      .header {
-        background: #fff;
-        border-bottom: 1px solid #e8e8e8;
-        padding: 14px 16px 10px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .header-title {
-        font-size: 17px;
-        font-weight: 600;
-        color: #111;
-      }
-      .header-user {
-        font-size: 12px;
-        color: #888;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .header-user img {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-      }
-      .tabbar {
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100%;
-        max-width: 480px;
-        background: #fff;
-        border-top: 1px solid #e8e8e8;
-        display: flex;
-        z-index: 20;
-        padding-bottom: env(safe-area-inset-bottom);
-      }
-      .tab {
-        flex: 1;
-        padding: 8px 2px 6px;
-        font-size: 10px;
-        font-weight: 500;
-        border: none;
-        background: transparent;
-        color: #999;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 3px;
-        font-family: inherit;
-      }
-      .tab svg {
-        width: 22px;
-        height: 22px;
-        stroke-width: 1.8;
-      }
-      .tab.on {
-        color: #111;
-      }
-      .tab.on svg {
-        stroke-width: 2.2;
-      }
-      .screen {
-        display: none;
-        padding: 16px;
-      }
-      .screen.on {
-        display: block;
-      }
-      .card {
-        background: #fff;
-        border-radius: 14px;
-        padding: 16px;
-        margin-bottom: 12px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-      }
-      .card-title {
-        font-size: 12px;
-        color: #888;
-        margin-bottom: 12px;
-        font-weight: 500;
-        letter-spacing: 0.3px;
-      }
-      .home-date {
-        font-size: 13px;
-        color: #888;
-        margin-bottom: 10px;
-      }
-      .home-total-box {
-        background: #f8f8f8;
-        border-radius: 12px;
-        padding: 20px 16px;
-        text-align: center;
-        margin-bottom: 14px;
-      }
-      .home-total-label {
-        font-size: 12px;
-        color: #888;
-        margin-bottom: 6px;
-      }
-      .home-total-value {
-        font-size: 38px;
-        font-weight: 700;
-        color: #111;
-        letter-spacing: -1px;
-      }
-      .metrics {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-      }
-      .metric {
-        background: #f8f8f8;
-        border-radius: 10px;
-        padding: 10px 6px;
-        text-align: center;
-      }
-      .metric-label {
-        font-size: 11px;
-        color: #888;
-        margin-bottom: 3px;
-      }
-      .metric-value {
-        font-size: 15px;
-        font-weight: 600;
-      }
-      .kakao {
-        color: #2d7a1f;
-      }
-      .card-color {
-        color: #1a5fa8;
-      }
-      .cash {
-        color: #8a5200;
-      }
-      .shortcut {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-top: 4px;
-      }
-      .shortcut-btn {
-        padding: 14px 8px;
-        background: #fff;
-        border: 1px solid #e8e8e8;
-        border-radius: 12px;
-        font-size: 13px;
-        font-weight: 500;
-        cursor: pointer;
-        text-align: center;
-        color: #111;
-        font-family: inherit;
-      }
-      .shortcut-btn:active {
-        background: #f5f5f5;
-      }
-      .shortcut-icon {
-        font-size: 20px;
-        display: block;
-        margin-bottom: 5px;
-      }
-      .field {
-        margin-bottom: 14px;
-      }
-      .field label {
-        display: block;
-        font-size: 13px;
-        color: #666;
-        margin-bottom: 6px;
-        font-weight: 500;
-      }
-      .field input {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1.5px solid #e8e8e8;
-        border-radius: 10px;
-        font-size: 16px;
-        background: #fff;
-        color: #111;
-        font-family: inherit;
-        -webkit-appearance: none;
-      }
-      .field input:focus {
-        outline: none;
-        border-color: #111;
-      }
-      .amount-row {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-      }
-      .amount-row .field {
-        margin-bottom: 0;
-      }
-      .amount-tag {
-        font-size: 11px;
-        font-weight: 600;
-        padding: 3px 7px;
-        border-radius: 6px;
-        display: inline-block;
-        margin-bottom: 5px;
-      }
-      .kakao-tag {
-        background: #e8f5e0;
-        color: #2d7a1f;
-      }
-      .card-tag {
-        background: #e0eeff;
-        color: #1a5fa8;
-      }
-      .cash-tag {
-        background: #fff3e0;
-        color: #8a5200;
-      }
-      .week-tag {
-        background: #e0eeff;
-        color: #1a5fa8;
-      }
-      .long-tag {
-        background: #fff3e0;
-        color: #8a5200;
-      }
-      .total-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 0;
-        border-top: 1px solid #f0f0f0;
-        margin-top: 10px;
-      }
-      .total-label {
-        font-size: 14px;
-        color: #666;
-      }
-      .total-value {
-        font-size: 22px;
-        font-weight: 700;
-        color: #111;
-      }
-      .btn {
-        width: 100%;
-        padding: 14px;
-        border: 1.5px solid #e8e8e8;
-        border-radius: 10px;
-        background: #fff;
-        color: #111;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: inherit;
-      }
-      .btn:active {
-        background: #f5f5f5;
-      }
-      .btn.primary {
-        background: #111;
-        color: #fff;
-        border-color: #111;
-      }
-      .btn.primary:active {
-        background: #333;
-      }
-      .btn-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-top: 8px;
-      }
-      .list-card {
-        background: #fff;
-        border-radius: 12px;
-        padding: 13px 14px;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      }
-      .list-date {
-        font-size: 14px;
-        font-weight: 600;
-        color: #111;
-      }
-      .list-sub {
-        font-size: 12px;
-        color: #999;
-        margin-top: 2px;
-      }
-      .list-amount {
-        font-size: 16px;
-        font-weight: 700;
-        color: #111;
-        text-align: right;
-      }
-      .badges {
-        display: flex;
-        gap: 4px;
-        margin-top: 3px;
-        justify-content: flex-end;
-      }
-      .badge {
-        font-size: 10px;
-        padding: 2px 6px;
-        border-radius: 5px;
-        font-weight: 500;
-      }
-      .stat-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 1px solid #f0f0f0;
-        font-size: 14px;
-      }
-      .stat-row:last-child {
-        border-bottom: none;
-      }
-      .bar-item {
-        margin-bottom: 12px;
-      }
-      .bar-label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 4px;
-      }
-      .bar-track {
-        height: 8px;
-        background: #f0f0f0;
-        border-radius: 4px;
-        overflow: hidden;
-      }
-      .bar-fill {
-        height: 100%;
-        border-radius: 4px;
-      }
-      .day-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-      .day-box {
-        background: #f8f8f8;
-        border-radius: 10px;
-        padding: 12px;
-        text-align: center;
-      }
-      .day-box-label {
-        font-size: 11px;
-        color: #888;
-        margin-bottom: 4px;
-      }
-      .day-box-count {
-        font-size: 26px;
-        font-weight: 700;
-        color: #111;
-      }
-      .day-box-unit {
-        font-size: 11px;
-        color: #888;
-        margin-top: 2px;
-      }
-      .goal-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-      .goal-row .field {
-        margin-bottom: 0;
-      }
-      .total-summary {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #f8f8f8;
-        border-radius: 10px;
-        padding: 12px 14px;
-        margin-top: 10px;
-      }
-      .total-summary-label {
-        font-size: 13px;
-        color: #666;
-      }
-      .total-summary-value {
-        font-size: 22px;
-        font-weight: 700;
-        color: #111;
-      }
-      .group-label {
-        font-size: 11px;
-        color: #888;
-        font-weight: 600;
-        margin-bottom: 6px;
-        letter-spacing: 0.3px;
-      }
-      .dayoff-row {
-        display: flex;
-        gap: 6px;
-        margin-bottom: 12px;
-      }
-      .dayoff-btn {
-        flex: 1;
-        padding: 8px 2px;
-        font-size: 13px;
-        font-weight: 600;
-        border: 1.5px solid #e8e8e8;
-        border-radius: 8px;
-        background: #fff;
-        color: #999;
-        cursor: pointer;
-        text-align: center;
-        font-family: inherit;
-        line-height: 1.4;
-      }
-      .dayoff-btn.off {
-        opacity: 0.3;
-        pointer-events: none;
-      }
-      .dayoff-btn.sel-wd {
-        background: #e0eeff;
-        border-color: #1a5fa8;
-        color: #1a5fa8;
-      }
-      .dayoff-btn.sel-lng {
-        background: #fff3e0;
-        border-color: #8a5200;
-        color: #8a5200;
-      }
-      .dayoff-note {
-        font-size: 12px;
-        color: #888;
-        margin-top: -4px;
-        margin-bottom: 4px;
-      }
-      .progress-track {
-        height: 10px;
-        background: #f0f0f0;
-        border-radius: 5px;
-        overflow: hidden;
-        margin: 6px 0;
-      }
-      .progress-fill {
-        height: 100%;
-        border-radius: 5px;
-        transition: width 0.4s;
-      }
-      .achieve-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 13px;
-        margin-bottom: 4px;
-      }
-      .achieve-pct {
-        font-weight: 700;
-        font-size: 15px;
-      }
-      .date-range {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-bottom: 12px;
-      }
-      .date-range input {
-        padding: 10px;
-        border: 1.5px solid #e8e8e8;
-        border-radius: 10px;
-        font-size: 14px;
-        font-family: inherit;
-        width: 100%;
-        color: #111;
-      }
-      .empty {
-        text-align: center;
-        padding: 32px 16px;
-        color: #bbb;
-        font-size: 14px;
-      }
-      .toast {
-        position: fixed;
-        bottom: 90px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: #111;
-        color: #fff;
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-size: 13px;
-        font-weight: 500;
-        opacity: 0;
-        transition: opacity 0.2s;
-        pointer-events: none;
-        z-index: 99;
-        white-space: nowrap;
-      }
-      .toast.show {
-        opacity: 1;
-      }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="택시매출">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>택시 매출 관리</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#111;min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:0 0 80px}
+.header{background:#fff;border-bottom:1px solid #e8e8e8;padding:14px 16px 10px;position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center}
+.header-title{font-size:17px;font-weight:600;color:#111}
+.header-user{font-size:12px;color:#888;display:flex;align-items:center;gap:8px}
+.header-user img{width:24px;height:24px;border-radius:50%}
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:#fff;border-top:1px solid #e8e8e8;display:flex;z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;padding:8px 2px 6px;font-size:10px;font-weight:500;border:none;background:transparent;color:#999;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:inherit}
+.tab svg{width:22px;height:22px;stroke-width:1.8}
+.tab.on{color:#111}
+.tab.on svg{stroke-width:2.2}
+.screen{display:none;padding:16px}.screen.on{display:block}
+.card{background:#fff;border-radius:14px;padding:16px;margin-bottom:12px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-title{font-size:12px;color:#888;margin-bottom:12px;font-weight:500;letter-spacing:.3px}
+.home-date{font-size:13px;color:#888;margin-bottom:10px}
+.home-total-box{background:#f8f8f8;border-radius:12px;padding:20px 16px;text-align:center;margin-bottom:14px}
+.home-total-label{font-size:12px;color:#888;margin-bottom:6px}
+.home-total-value{font-size:38px;font-weight:700;color:#111;letter-spacing:-1px}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.metric{background:#f8f8f8;border-radius:10px;padding:10px 6px;text-align:center}
+.metric-label{font-size:11px;color:#888;margin-bottom:3px}
+.metric-value{font-size:15px;font-weight:600}
+.kakao{color:#2d7a1f}.card-color{color:#1a5fa8}.cash{color:#8a5200}
+.shortcut{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
+.shortcut-btn{padding:14px 8px;background:#fff;border:1px solid #e8e8e8;border-radius:12px;font-size:13px;font-weight:500;cursor:pointer;text-align:center;color:#111;font-family:inherit}
+.shortcut-btn:active{background:#f5f5f5}
+.shortcut-icon{font-size:20px;display:block;margin-bottom:5px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:#666;margin-bottom:6px;font-weight:500}
+.field input{width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:16px;background:#fff;color:#111;font-family:inherit;-webkit-appearance:none}
+.field input:focus{outline:none;border-color:#111}
+.amount-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.amount-row .field{margin-bottom:0}
+.amount-tag{font-size:11px;font-weight:600;padding:3px 7px;border-radius:6px;display:inline-block;margin-bottom:5px}
+.kakao-tag{background:#e8f5e0;color:#2d7a1f}
+.card-tag{background:#e0eeff;color:#1a5fa8}
+.cash-tag{background:#fff3e0;color:#8a5200}
+.week-tag{background:#e0eeff;color:#1a5fa8}
+.long-tag{background:#fff3e0;color:#8a5200}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-top:1px solid #f0f0f0;margin-top:10px}
+.total-label{font-size:14px;color:#666}
+.total-value{font-size:22px;font-weight:700;color:#111}
+.btn{width:100%;padding:14px;border:1.5px solid #e8e8e8;border-radius:10px;background:#fff;color:#111;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:active{background:#f5f5f5}
+.btn.primary{background:#111;color:#fff;border-color:#111}
+.btn.primary:active{background:#333}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.list-card{background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.list-date{font-size:14px;font-weight:600;color:#111}
+.list-sub{font-size:12px;color:#999;margin-top:2px}
+.list-amount{font-size:16px;font-weight:700;color:#111;text-align:right}
+.badges{display:flex;gap:4px;margin-top:3px;justify-content:flex-end}
+.badge{font-size:10px;padding:2px 6px;border-radius:5px;font-weight:500}
+.stat-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:14px}
+.stat-row:last-child{border-bottom:none}
+.bar-item{margin-bottom:12px}
+.bar-label{display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:4px}
+.bar-track{height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px}
+.day-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.day-box{background:#f8f8f8;border-radius:10px;padding:12px;text-align:center}
+.day-box-label{font-size:11px;color:#888;margin-bottom:4px}
+.day-box-count{font-size:26px;font-weight:700;color:#111}
+.day-box-unit{font-size:11px;color:#888;margin-top:2px}
+.goal-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.goal-row .field{margin-bottom:0}
+.total-summary{display:flex;justify-content:space-between;align-items:center;background:#f8f8f8;border-radius:10px;padding:12px 14px;margin-top:10px}
+.total-summary-label{font-size:13px;color:#666}
+.total-summary-value{font-size:22px;font-weight:700;color:#111}
+.group-label{font-size:11px;color:#888;font-weight:600;margin-bottom:6px;letter-spacing:.3px}
+.dayoff-row{display:flex;gap:6px;margin-bottom:12px}
+.dayoff-btn{flex:1;padding:8px 2px;font-size:13px;font-weight:600;border:1.5px solid #e8e8e8;border-radius:8px;background:#fff;color:#999;cursor:pointer;text-align:center;font-family:inherit;line-height:1.4}
+.dayoff-btn.off{opacity:.3;pointer-events:none}
+.dayoff-btn.sel-wd{background:#e0eeff;border-color:#1a5fa8;color:#1a5fa8}
+.dayoff-btn.sel-lng{background:#fff3e0;border-color:#8a5200;color:#8a5200}
+.dayoff-note{font-size:12px;color:#888;margin-top:-4px;margin-bottom:4px}
+.progress-track{height:10px;background:#f0f0f0;border-radius:5px;overflow:hidden;margin:6px 0}
+.progress-fill{height:100%;border-radius:5px;transition:width .4s}
+.achieve-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:4px}
+.achieve-pct{font-weight:700;font-size:15px}
+.date-range{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.date-range input{padding:10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:14px;font-family:inherit;width:100%;color:#111}
+.empty{text-align:center;padding:32px 16px;color:#bbb;font-size:14px}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;opacity:0;transition:opacity .2s;pointer-events:none;z-index:99;white-space:nowrap}
+.toast.show{opacity:1}
 
-      /* 로그인 화면 */
-      .login-screen {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        padding: 32px;
-        background: #fff;
-      }
-      .login-icon {
-        font-size: 64px;
-        margin-bottom: 24px;
-      }
-      .login-title {
-        font-size: 24px;
-        font-weight: 700;
-        color: #111;
-        margin-bottom: 8px;
-      }
-      .login-sub {
-        font-size: 14px;
-        color: #888;
-        margin-bottom: 48px;
-        text-align: center;
-      }
-      .google-btn {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 14px 24px;
-        border: 1.5px solid #e8e8e8;
-        border-radius: 12px;
-        background: #fff;
-        font-size: 15px;
-        font-weight: 600;
-        color: #111;
-        cursor: pointer;
-        font-family: inherit;
-        width: 100%;
-        justify-content: center;
-      }
-      .google-btn:active {
-        background: #f5f5f5;
-      }
-      .google-btn img {
-        width: 20px;
-        height: 20px;
-      }
+/* 로그인 화면 */
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px;background:#fff}
+.login-icon{font-size:64px;margin-bottom:24px}
+.login-title{font-size:24px;font-weight:700;color:#111;margin-bottom:8px}
+.login-sub{font-size:14px;color:#888;margin-bottom:48px;text-align:center}
+.google-btn{display:flex;align-items:center;gap:12px;padding:14px 24px;border:1.5px solid #e8e8e8;border-radius:12px;background:#fff;font-size:15px;font-weight:600;color:#111;cursor:pointer;font-family:inherit;width:100%;justify-content:center}
+.google-btn:active{background:#f5f5f5}
+.google-btn img{width:20px;height:20px}
 
-      /* 동기화 상태 */
-      .sync-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #ccc;
-        display: inline-block;
-        margin-left: 4px;
-      }
-      .sync-dot.synced {
-        background: #2d7a1f;
-      }
-      .sync-dot.syncing {
-        background: #f5a623;
-        animation: pulse 0.8s infinite;
-      }
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.3;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <!-- 로그인 화면 -->
-    <div class="login-screen" id="login-screen">
-      <div class="login-icon">🚕</div>
-      <div class="login-title">택시 매출 관리</div>
-      <div class="login-sub">
-        Google 계정으로 로그인하면<br />어느 기기에서든 데이터가 동기화돼요
-      </div>
-      <button class="google-btn" onclick="loginWithGoogle()">
-        <img
-          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-          alt="Google"
-        />
-        Google로 로그인
-      </button>
+/* 동기화 상태 */
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#ccc;display:inline-block;margin-left:4px}
+.sync-dot.synced{background:#2d7a1f}
+.sync-dot.syncing{background:#f5a623;animation:pulse .8s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+
+<!-- 로그인 화면 -->
+<div class="login-screen" id="login-screen">
+  <div class="login-icon">🚕</div>
+  <div class="login-title">택시 매출 관리</div>
+  <div class="login-sub">Google 계정으로 로그인하면<br>어느 기기에서든 데이터가 동기화돼요</div>
+  <button class="google-btn" onclick="loginWithGoogle()">
+    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+    Google로 로그인
+  </button>
+</div>
+
+<!-- 메인 앱 -->
+<div id="main-app" style="display:none">
+<div class="header">
+  <div class="header-title" id="header-title">홈</div>
+  <div class="header-user">
+    <span class="sync-dot" id="sync-dot"></span>
+    <img id="user-photo" src="" style="display:none">
+    <span id="user-name"></span>
+    <button onclick="logout()" style="border:none;background:none;font-size:12px;color:#888;cursor:pointer;padding:0">로그아웃</button>
+  </div>
+</div>
+
+<div class="app">
+
+<!-- 홈 -->
+<div id="s-home" class="screen on">
+  <div class="card">
+    <div class="home-date" id="home-date"></div>
+    <div class="home-total-box">
+      <div class="home-total-label">오늘 총 매출</div>
+      <div class="home-total-value" id="home-total">0원</div>
     </div>
-
-    <!-- 메인 앱 -->
-    <div id="main-app" style="display: none">
-      <div class="header">
-        <div class="header-title" id="header-title">홈</div>
-        <div class="header-user">
-          <span class="sync-dot" id="sync-dot"></span>
-          <img id="user-photo" src="" style="display: none" />
-          <span id="user-name"></span>
-          <button
-            onclick="logout()"
-            style="
-              border: none;
-              background: none;
-              font-size: 12px;
-              color: #888;
-              cursor: pointer;
-              padding: 0;
-            "
-          >
-            로그아웃
-          </button>
-        </div>
-      </div>
-
-      <div class="app">
-        <!-- 홈 -->
-        <div id="s-home" class="screen on">
-          <div class="card">
-            <div class="home-date" id="home-date"></div>
-            <div class="home-total-box">
-              <div class="home-total-label">오늘 총 매출</div>
-              <div class="home-total-value" id="home-total">0원</div>
-            </div>
-            <div class="metrics">
-              <div class="metric">
-                <div class="metric-label">카카오T</div>
-                <div class="metric-value kakao" id="home-kakao">0</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">카드</div>
-                <div class="metric-value card-color" id="home-card">0</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">현금</div>
-                <div class="metric-value cash" id="home-cash">0</div>
-              </div>
-            </div>
-          </div>
-          <div class="card" id="home-goal-card" style="display: none">
-            <div class="card-title">이달 달성 현황</div>
-            <div id="home-achieve"></div>
-          </div>
-          <div class="shortcut">
-            <button class="shortcut-btn" onclick="go('input')">
-              <span class="shortcut-icon">✏️</span>매출 입력
-            </button>
-            <button class="shortcut-btn" onclick="go('stats')">
-              <span class="shortcut-icon">📊</span>통계 보기
-            </button>
-          </div>
-        </div>
-
-        <!-- 입력 -->
-        <div id="s-input" class="screen">
-          <div class="card">
-            <div class="card-title">매출 입력</div>
-            <div class="field">
-              <label>날짜</label>
-              <input type="date" id="i-date" />
-            </div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 80px;
-                gap: 6px;
-                margin-bottom: 4px;
-              "
-            >
-              <div
-                style="
-                  font-size: 11px;
-                  font-weight: 600;
-                  color: #888;
-                  padding-left: 2px;
-                "
-              >
-                금액
-              </div>
-              <div
-                style="
-                  font-size: 11px;
-                  font-weight: 600;
-                  color: #888;
-                  text-align: center;
-                "
-              >
-                건수
-              </div>
-            </div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 80px;
-                gap: 6px;
-                margin-bottom: 8px;
-                align-items: center;
-              "
-            >
-              <div>
-                <span class="amount-tag kakao-tag">카카오T</span
-                ><input
-                  type="number"
-                  id="i-kakao"
-                  placeholder="0"
-                  min="0"
-                  step="100"
-                  inputmode="numeric"
-                  style="
-                    width: 100%;
-                    padding: 10px 12px;
-                    border: 1.5px solid #e8e8e8;
-                    border-radius: 10px;
-                    font-size: 15px;
-                    font-family: inherit;
-                    color: #111;
-                  "
-                />
-              </div>
-              <div>
-                <span
-                  class="amount-tag"
-                  style="visibility: hidden; font-size: 11px"
-                  >건</span
-                ><input
-                  type="number"
-                  id="i-kakao-cnt"
-                  placeholder="0"
-                  min="0"
-                  step="1"
-                  inputmode="numeric"
-                  style="
-                    width: 100%;
-                    padding: 10px 8px;
-                    border: 1.5px solid #e8e8e8;
-                    border-radius: 10px;
-                    font-size: 15px;
-                    font-family: inherit;
-                    color: #111;
-                    text-align: center;
-                  "
-                />
-              </div>
-            </div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 80px;
-                gap: 6px;
-                margin-bottom: 8px;
-                align-items: center;
-              "
-            >
-              <div>
-                <span class="amount-tag card-tag">카드</span
-                ><input
-                  type="number"
-                  id="i-card"
-                  placeholder="0"
-                  min="0"
-                  step="100"
-                  inputmode="numeric"
-                  style="
-                    width: 100%;
-                    padding: 10px 12px;
-                    border: 1.5px solid #e8e8e8;
-                    border-radius: 10px;
-                    font-size: 15px;
-                    font-family: inherit;
-                    color: #111;
-                  "
-                />
-              </div>
-              <div>
-                <span
-                  class="amount-tag"
-                  style="visibility: hidden; font-size: 11px"
-                  >건</span
-                ><input
-                  type="number"
-                  id="i-card-cnt"
-                  placeholder="0"
-                  min="0"
-                  step="1"
-                  inputmode="numeric"
-                  style="
-                    width: 100%;
-                    padding: 10px 8px;
-                    border: 1.5px solid #e8e8e8;
-                    border-radius: 10px;
-                    font-size: 15px;
-                    font-family: inherit;
-                    color: #111;
-                    text-align: center;
-                  "
-                />
-              </div>
-            </div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr 80px;
-                gap: 6px;
-                margin-bottom: 0;
-                align-items: center;
-              "
-            >
-              <div>
-                <span class="amount-tag cash-tag">현금</span
-                ><input
-                  type="number"
-                  id="i-cash"
-                  placeholder="0"
-                  min="0"
-                  step="100"
-                  inputmode="numeric"
-                  style="
-                    width: 100%;
-                    padding: 10px 12px;
-                    border: 1.5px solid #e8e8e8;
-                    border-radius: 10px;
-                    font-size: 15px;
-                    font-family: inherit;
-                    color: #111;
-                  "
-                />
-              </div>
-              <div>
-                <span
-                  class="amount-tag"
-                  style="visibility: hidden; font-size: 11px"
-                  >건</span
-                ><input
-                  type="number"
-                  id="i-cash-cnt"
-                  placeholder="0"
-                  min="0"
-                  step="1"
-                  inputmode="numeric"
-                  style="
-                    width: 100%;
-                    padding: 10px 8px;
-                    border: 1.5px solid #e8e8e8;
-                    border-radius: 10px;
-                    font-size: 15px;
-                    font-family: inherit;
-                    color: #111;
-                    text-align: center;
-                  "
-                />
-              </div>
-            </div>
-            <div class="total-row">
-              <span class="total-label">합계</span>
-              <span style="text-align: right"
-                ><span class="total-value" id="i-total">0원</span
-                ><span
-                  style="font-size: 12px; color: #888; margin-left: 8px"
-                  id="i-total-cnt"
-                ></span
-              ></span>
-            </div>
-            <div class="field" style="margin-top: 12px">
-              <label>메모 (선택)</label>
-              <input type="text" id="i-memo" placeholder="특이사항 입력" />
-            </div>
-            <button
-              class="btn primary"
-              style="margin-top: 4px"
-              onclick="saveRecord()"
-            >
-              저장
-            </button>
-          </div>
-        </div>
-
-        <!-- 내역 -->
-        <div id="s-list" class="screen">
-          <div class="card">
-            <div class="card-title">기간 선택</div>
-            <div class="date-range">
-              <input type="date" id="l-from" />
-              <input type="date" id="l-to" />
-            </div>
-            <button class="btn" onclick="renderList()">조회</button>
-          </div>
-          <div id="list-body"></div>
-        </div>
-
-        <!-- 통계 -->
-        <div id="s-stats" class="screen">
-          <div class="card">
-            <div class="card-title">기간 선택</div>
-            <div class="date-range">
-              <input type="date" id="t-from" />
-              <input type="date" id="t-to" />
-            </div>
-            <div class="btn-row">
-              <button class="btn" onclick="setRange('month')">이번달</button>
-              <button class="btn" onclick="setRange('week')">이번주</button>
-            </div>
-            <button class="btn" style="margin-top: 8px" onclick="renderStats()">
-              조회
-            </button>
-          </div>
-          <div id="stats-body"></div>
-          <div style="margin-top: 8px">
-            <button class="btn" onclick="exportCSV()">CSV 내보내기</button>
-          </div>
-        </div>
-
-        <!-- 목표 -->
-        <div id="s-goal" class="screen">
-          <div class="card">
-            <div class="card-title">기준 월 선택</div>
-            <input
-              type="month"
-              id="g-month"
-              style="
-                width: 100%;
-                padding: 12px 14px;
-                border: 1.5px solid #e8e8e8;
-                border-radius: 10px;
-                font-size: 16px;
-                font-family: inherit;
-                color: #111;
-              "
-            />
-          </div>
-          <div class="card">
-            <div class="card-title">
-              휴무 요일 선택
-              <span style="font-size: 11px; color: #aaa; font-weight: 400"
-                >(선택 요일 제외)</span
-              >
-            </div>
-            <div class="group-label">일반영업 (월~목)</div>
-            <div class="dayoff-row" id="wd-btns"></div>
-            <div class="group-label">12시간영업 (금·토·일)</div>
-            <div class="dayoff-row" id="lng-btns"></div>
-            <div class="dayoff-note" id="dayoff-note"></div>
-          </div>
-          <div class="card">
-            <div class="card-title">
-              이달 운행일수
-              <span style="font-size: 11px; color: #aaa; font-weight: 400"
-                >(휴무 제외)</span
-              >
-            </div>
-            <div class="day-grid">
-              <div class="day-box">
-                <div class="day-box-label">일반영업 (월~목)</div>
-                <div class="day-box-count" id="g-wd-count">-</div>
-                <div class="day-box-unit">일</div>
-              </div>
-              <div class="day-box">
-                <div class="day-box-label">12시간영업 (금·토·일)</div>
-                <div class="day-box-count" id="g-lng-count">-</div>
-                <div class="day-box-unit">일</div>
-              </div>
-            </div>
-            <div style="text-align: center; font-size: 13px; color: #888">
-              총 운행 예정 <strong id="g-total-days">-</strong>일
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">일별 목표 금액</div>
-            <div class="goal-row">
-              <div class="field">
-                <label
-                  ><span class="amount-tag week-tag">일반영업</span> 하루
-                  목표</label
-                ><input
-                  type="number"
-                  id="g-wd-goal"
-                  placeholder="예: 200000"
-                  step="10000"
-                  min="0"
-                  inputmode="numeric"
-                />
-              </div>
-              <div class="field">
-                <label
-                  ><span class="amount-tag long-tag">12시간</span> 하루
-                  목표</label
-                ><input
-                  type="number"
-                  id="g-lng-goal"
-                  placeholder="예: 300000"
-                  step="10000"
-                  min="0"
-                  inputmode="numeric"
-                />
-              </div>
-            </div>
-            <hr
-              style="
-                border: none;
-                border-top: 1px solid #f0f0f0;
-                margin: 14px 0;
-              "
-            />
-            <div class="day-grid" style="margin-bottom: 0">
-              <div class="day-box">
-                <div class="day-box-label">일반영업 월 목표</div>
-                <div
-                  id="g-wd-total"
-                  style="
-                    font-size: 15px;
-                    font-weight: 700;
-                    color: #111;
-                    margin-top: 4px;
-                  "
-                >
-                  -
-                </div>
-              </div>
-              <div class="day-box">
-                <div class="day-box-label">12시간 월 목표</div>
-                <div
-                  id="g-lng-total"
-                  style="
-                    font-size: 15px;
-                    font-weight: 700;
-                    color: #111;
-                    margin-top: 4px;
-                  "
-                >
-                  -
-                </div>
-              </div>
-            </div>
-            <div class="total-summary">
-              <span class="total-summary-label">월 총 목표</span>
-              <span class="total-summary-value" id="g-month-total">-</span>
-            </div>
-            <button
-              class="btn primary"
-              style="margin-top: 12px"
-              onclick="saveGoal()"
-            >
-              목표 저장
-            </button>
-          </div>
-          <div class="card">
-            <div class="card-title">이달 달성 현황</div>
-            <div id="achieve-body">
-              <div class="empty">목표를 저장하면 달성률이 표시됩니다</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- .app -->
-
-      <nav class="tabbar">
-        <button class="tab on" onclick="go('home')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" /></svg
-          >홈
-        </button>
-        <button class="tab" onclick="go('input')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="16" />
-            <line x1="8" y1="12" x2="16" y2="12" /></svg
-          >입력
-        </button>
-        <button class="tab" onclick="go('list')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="8" y1="6" x2="21" y2="6" />
-            <line x1="8" y1="12" x2="21" y2="12" />
-            <line x1="8" y1="18" x2="21" y2="18" />
-            <line x1="3" y1="6" x2="3.01" y2="6" />
-            <line x1="3" y1="12" x2="3.01" y2="12" />
-            <line x1="3" y1="18" x2="3.01" y2="18" /></svg
-          >내역
-        </button>
-        <button class="tab" onclick="go('stats')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <line x1="18" y1="20" x2="18" y2="10" />
-            <line x1="12" y1="20" x2="12" y2="4" />
-            <line x1="6" y1="20" x2="6" y2="14" /></svg
-          >통계
-        </button>
-        <button class="tab" onclick="go('goal')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" />
-            <circle cx="12" cy="12" r="6" />
-            <circle cx="12" cy="12" r="2" /></svg
-          >목표
-        </button>
-      </nav>
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">카카오T</div><div class="metric-value kakao" id="home-kakao">0</div></div>
+      <div class="metric"><div class="metric-label">카드</div><div class="metric-value card-color" id="home-card">0</div></div>
+      <div class="metric"><div class="metric-label">현금</div><div class="metric-value cash" id="home-cash">0</div></div>
     </div>
-    <!-- #main-app -->
+  </div>
+  <div class="card" id="home-goal-card" style="display:none">
+    <div class="card-title">이달 달성 현황</div>
+    <div id="home-achieve"></div>
+  </div>
+  <div class="shortcut">
+    <button class="shortcut-btn" onclick="go('input')"><span class="shortcut-icon">✏️</span>매출 입력</button>
+    <button class="shortcut-btn" onclick="go('stats')"><span class="shortcut-icon">📊</span>통계 보기</button>
+  </div>
+</div>
 
-    <div class="toast" id="toast"></div>
+<!-- 입력 -->
+<div id="s-input" class="screen">
+  <div class="card">
+    <div class="card-title">매출 입력</div>
+    <div class="field">
+      <label>날짜</label>
+      <input type="date" id="i-date">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:6px;margin-bottom:4px">
+      <div style="font-size:11px;font-weight:600;color:#888;padding-left:2px">금액</div>
+      <div style="font-size:11px;font-weight:600;color:#888;text-align:center">건수</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:6px;margin-bottom:8px;align-items:center">
+      <div><span class="amount-tag kakao-tag">카카오T</span><input type="number" id="i-kakao" placeholder="0" min="0" step="100" inputmode="numeric" style="width:100%;padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111"></div>
+      <div><span class="amount-tag" style="visibility:hidden;font-size:11px">건</span><input type="number" id="i-kakao-cnt" placeholder="0" min="0" step="1" inputmode="numeric" style="width:100%;padding:10px 8px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111;text-align:center"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:6px;margin-bottom:8px;align-items:center">
+      <div><span class="amount-tag card-tag">카드</span><input type="number" id="i-card" placeholder="0" min="0" step="100" inputmode="numeric" style="width:100%;padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111"></div>
+      <div><span class="amount-tag" style="visibility:hidden;font-size:11px">건</span><input type="number" id="i-card-cnt" placeholder="0" min="0" step="1" inputmode="numeric" style="width:100%;padding:10px 8px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111;text-align:center"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:6px;margin-bottom:0;align-items:center">
+      <div><span class="amount-tag cash-tag">현금</span><input type="number" id="i-cash" placeholder="0" min="0" step="100" inputmode="numeric" style="width:100%;padding:10px 12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111"></div>
+      <div><span class="amount-tag" style="visibility:hidden;font-size:11px">건</span><input type="number" id="i-cash-cnt" placeholder="0" min="0" step="1" inputmode="numeric" style="width:100%;padding:10px 8px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;font-family:inherit;color:#111;text-align:center"></div>
+    </div>
+    <div class="total-row">
+      <span class="total-label">합계</span>
+      <span style="text-align:right"><span class="total-value" id="i-total">0원</span><span style="font-size:12px;color:#888;margin-left:8px" id="i-total-cnt"></span></span>
+    </div>
+    <div class="field" style="margin-top:12px">
+      <label>메모 (선택)</label>
+      <input type="text" id="i-memo" placeholder="특이사항 입력">
+    </div>
+    <button class="btn primary" style="margin-top:4px" onclick="saveRecord()">저장</button>
+  </div>
+</div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-      import {
-        getAuth,
-        GoogleAuthProvider,
-        signInWithPopup,
-        signOut,
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
-      import {
-        getFirestore,
-        doc,
-        setDoc,
-        getDoc,
-        collection,
-        query,
-        where,
-        getDocs,
-        orderBy,
-        onSnapshot,
-      } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
+<!-- 내역 -->
+<div id="s-list" class="screen">
+  <div class="card">
+    <div class="card-title">기간 선택</div>
+    <div class="date-range">
+      <input type="date" id="l-from">
+      <input type="date" id="l-to">
+    </div>
+    <button class="btn" onclick="renderList()">조회</button>
+  </div>
+  <div id="list-body"></div>
+</div>
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyCHbaQs-SgUIgx59xbwZJNJE_DTjoCKLUc",
-        authDomain: "taxi-driver-68c55.firebaseapp.com",
-        projectId: "taxi-driver-68c55",
-        storageBucket: "taxi-driver-68c55.firebasestorage.app",
-        messagingSenderId: "272835674154",
-        appId: "1:272835674154:web:3a0e93f68a778dee38c353",
-      };
+<!-- 통계 -->
+<div id="s-stats" class="screen">
+  <div class="card">
+    <div class="card-title">기간 선택</div>
+    <div class="date-range">
+      <input type="date" id="t-from">
+      <input type="date" id="t-to">
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="setRange('month')">이번달</button>
+      <button class="btn" onclick="setRange('week')">이번주</button>
+    </div>
+    <button class="btn" style="margin-top:8px" onclick="renderStats()">조회</button>
+  </div>
+  <div id="stats-body"></div>
+  <div style="margin-top:8px"><button class="btn" onclick="exportCSV()">CSV 내보내기</button></div>
+</div>
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+<!-- 목표 -->
+<div id="s-goal" class="screen">
+  <div class="card">
+    <div class="card-title">기준 월 선택</div>
+    <input type="month" id="g-month" style="width:100%;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:16px;font-family:inherit;color:#111">
+  </div>
+  <div class="card">
+    <div class="card-title">휴무 요일 선택 <span style="font-size:11px;color:#aaa;font-weight:400">(선택 요일 제외)</span></div>
+    <div class="group-label">일반영업 (월~목)</div>
+    <div class="dayoff-row" id="wd-btns"></div>
+    <div class="group-label">12시간영업 (금·토·일)</div>
+    <div class="dayoff-row" id="lng-btns"></div>
+    <div class="dayoff-note" id="dayoff-note"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">이달 운행일수 <span style="font-size:11px;color:#aaa;font-weight:400">(휴무 제외)</span></div>
+    <div class="day-grid">
+      <div class="day-box"><div class="day-box-label">일반영업 (월~목)</div><div class="day-box-count" id="g-wd-count">-</div><div class="day-box-unit">일</div></div>
+      <div class="day-box"><div class="day-box-label">12시간영업 (금·토·일)</div><div class="day-box-count" id="g-lng-count">-</div><div class="day-box-unit">일</div></div>
+    </div>
+    <div style="text-align:center;font-size:13px;color:#888">총 운행 예정 <strong id="g-total-days">-</strong>일</div>
+  </div>
+  <div class="card">
+    <div class="card-title">일별 목표 금액</div>
+    <div class="goal-row">
+      <div class="field"><label><span class="amount-tag week-tag">일반영업</span> 하루 목표</label><input type="number" id="g-wd-goal" placeholder="예: 200000" step="10000" min="0" inputmode="numeric"></div>
+      <div class="field"><label><span class="amount-tag long-tag">12시간</span> 하루 목표</label><input type="number" id="g-lng-goal" placeholder="예: 300000" step="10000" min="0" inputmode="numeric"></div>
+    </div>
+    <hr style="border:none;border-top:1px solid #f0f0f0;margin:14px 0">
+    <div class="day-grid" style="margin-bottom:0">
+      <div class="day-box"><div class="day-box-label">일반영업 월 목표</div><div id="g-wd-total" style="font-size:15px;font-weight:700;color:#111;margin-top:4px">-</div></div>
+      <div class="day-box"><div class="day-box-label">12시간 월 목표</div><div id="g-lng-total" style="font-size:15px;font-weight:700;color:#111;margin-top:4px">-</div></div>
+    </div>
+    <div class="total-summary">
+      <span class="total-summary-label">월 총 목표</span>
+      <span class="total-summary-value" id="g-month-total">-</span>
+    </div>
+    <button class="btn primary" style="margin-top:12px" onclick="saveGoal()">목표 저장</button>
+  </div>
+  <div class="card">
+    <div class="card-title">이달 달성 현황</div>
+    <div id="achieve-body"><div class="empty">목표를 저장하면 달성률이 표시됩니다</div></div>
+  </div>
+</div>
 
-      let currentUser = null;
-      let cachedRecords = [];
-      let cachedGoals = {};
+</div><!-- .app -->
 
-      // ── 인증 ──────────────────────────────────────────
-      window.loginWithGoogle = async () => {
-        const provider = new GoogleAuthProvider();
-        try {
-          await signInWithPopup(auth, provider);
-        } catch (e) {
-          toast("로그인 실패: " + e.message);
-        }
-      };
-      window.logout = async () => {
-        if (unsubRecords) unsubRecords();
-        if (unsubGoals) unsubGoals();
-        await signOut(auth);
-        currentUser = null;
-        cachedRecords = [];
-        cachedGoals = {};
-        document.getElementById("login-screen").style.display = "flex";
-        document.getElementById("main-app").style.display = "none";
-      };
+<nav class="tabbar">
+  <button class="tab on" onclick="go('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>홈
+  </button>
+  <button class="tab" onclick="go('input')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>입력
+  </button>
+  <button class="tab" onclick="go('list')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>내역
+  </button>
+  <button class="tab" onclick="go('stats')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>통계
+  </button>
+  <button class="tab" onclick="go('goal')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>목표
+  </button>
+</nav>
+</div><!-- #main-app -->
 
-      onAuthStateChanged(auth, async (user) => {
-        if (user) {
-          currentUser = user;
-          document.getElementById("login-screen").style.display = "none";
-          document.getElementById("main-app").style.display = "block";
-          const photo = document.getElementById("user-photo");
-          if (user.photoURL) {
-            photo.src = user.photoURL;
-            photo.style.display = "block";
-          }
-          document.getElementById("user-name").textContent =
-            user.displayName?.split(" ")[0] || "";
-          await loadAllData();
-          renderHome();
-        } else {
-          document.getElementById("login-screen").style.display = "flex";
-          document.getElementById("main-app").style.display = "none";
-        }
-      });
+<div class="toast" id="toast"></div>
 
-      // ── 데이터 로드 ────────────────────────────────────
-      function setSyncing(v) {
-        const dot = document.getElementById("sync-dot");
-        dot.className = "sync-dot " + (v ? "syncing" : "synced");
-      }
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js"
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js"
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js"
 
-      let unsubRecords = null;
-      let unsubGoals = null;
+const firebaseConfig = {
+  apiKey: "AIzaSyCHbaQs-SgUIgx59xbwZJNJE_DTjoCKLUc",
+  authDomain: "taxi-driver-68c55.firebaseapp.com",
+  projectId: "taxi-driver-68c55",
+  storageBucket: "taxi-driver-68c55.firebasestorage.app",
+  messagingSenderId: "272835674154",
+  appId: "1:272835674154:web:3a0e93f68a778dee38c353"
+}
 
-      function startRealtimeSync(uid) {
-        // 기존 리스너 해제
-        if (unsubRecords) unsubRecords();
-        if (unsubGoals) unsubGoals();
+const app = initializeApp(firebaseConfig)
+const auth = getAuth(app)
+const db = getFirestore(app)
 
-        setSyncing(true);
+let currentUser = null
+let cachedRecords = []
+let cachedGoals = {}
 
-        // 레코드 실시간 리스너
-        unsubRecords = onSnapshot(
-          collection(db, "users", uid, "records"),
-          (snap) => {
-            cachedRecords = [];
-            snap.forEach((d) => cachedRecords.push(d.data()));
-            cachedRecords.sort((a, b) => b.date.localeCompare(a.date));
-            setSyncing(false);
-            // 현재 화면 갱신
-            const activeScreen = document
-              .querySelector(".screen.on")
-              ?.id?.replace("s-", "");
-            if (activeScreen === "home") renderHome();
-            if (activeScreen === "list") renderList();
-            if (activeScreen === "stats") renderStats();
-            if (activeScreen === "goal") renderGoal();
-          },
-          (e) => {
-            toast("동기화 오류");
-            setSyncing(false);
-          },
-        );
+// ── 인증 ──────────────────────────────────────────
+window.loginWithGoogle = async () => {
+  const provider = new GoogleAuthProvider()
+  try { await signInWithPopup(auth, provider) }
+  catch(e) { toast('로그인 실패: ' + e.message) }
+}
+window.logout = async () => {
+  if(unsubRecords) unsubRecords()
+  if(unsubGoals) unsubGoals()
+  await signOut(auth)
+  currentUser = null
+  cachedRecords = []
+  cachedGoals = {}
+  document.getElementById('login-screen').style.display = 'flex'
+  document.getElementById('main-app').style.display = 'none'
+}
 
-        // 목표 실시간 리스너
-        unsubGoals = onSnapshot(
-          doc(db, "users", uid, "meta", "goals"),
-          (snap) => {
-            cachedGoals = snap.exists() ? snap.data() : {};
-          },
-        );
-      }
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    currentUser = user
+    document.getElementById('login-screen').style.display = 'none'
+    document.getElementById('main-app').style.display = 'block'
+    const photo = document.getElementById('user-photo')
+    if (user.photoURL) { photo.src = user.photoURL; photo.style.display = 'block' }
+    document.getElementById('user-name').textContent = user.displayName?.split(' ')[0] || ''
+    await loadAllData()
+    renderHome()
+  } else {
+    document.getElementById('login-screen').style.display = 'flex'
+    document.getElementById('main-app').style.display = 'none'
+  }
+})
 
-      async function loadAllData() {
-        startRealtimeSync(currentUser.uid);
-      }
+// ── 데이터 로드 ────────────────────────────────────
+function setSyncing(v) {
+  const dot = document.getElementById('sync-dot')
+  dot.className = 'sync-dot ' + (v ? 'syncing' : 'synced')
+}
 
-      // ── 저장 ──────────────────────────────────────────
-      async function saveRecordToDB(rec) {
-        setSyncing(true);
-        try {
-          const uid = currentUser.uid;
-          await setDoc(doc(db, "users", uid, "records", rec.date), rec);
-          const idx = cachedRecords.findIndex((r) => r.date === rec.date);
-          if (idx >= 0) cachedRecords[idx] = rec;
-          else cachedRecords.push(rec);
-          cachedRecords.sort((a, b) => b.date.localeCompare(a.date));
-        } catch (e) {
-          toast("저장 실패: " + e.message);
-        }
-        setSyncing(false);
-      }
+let unsubRecords = null
+let unsubGoals = null
 
-      async function saveGoalsToDB(goals) {
-        setSyncing(true);
-        try {
-          const uid = currentUser.uid;
-          await setDoc(doc(db, "users", uid, "meta", "goals"), goals);
-          cachedGoals = goals;
-        } catch (e) {
-          toast("목표 저장 실패");
-        }
-        setSyncing(false);
-      }
+function startRealtimeSync(uid) {
+  // 기존 리스너 해제
+  if(unsubRecords) unsubRecords()
+  if(unsubGoals) unsubGoals()
 
-      // 포그라운드 복귀시 실시간 재연결
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible" && currentUser) {
-          setSyncing(true);
-          startRealtimeSync(currentUser.uid);
-        }
-      });
+  setSyncing(true)
 
-      // ── 유틸 ──────────────────────────────────────────
-      const DAY_NAMES = ["일", "월", "화", "수", "목", "금", "토"];
-      const WD_DOWS = [1, 2, 3, 4];
-      const LNG_DOWS = [5, 6, 0];
-      let selectedDayoffs = new Set();
-      const HEADERS = {
-        home: "홈",
-        input: "매출 입력",
-        list: "내역",
-        stats: "통계",
-        goal: "목표 설정",
-      };
+  // 레코드 실시간 리스너
+  unsubRecords = onSnapshot(collection(db, 'users', uid, 'records'), snap => {
+    cachedRecords = []
+    snap.forEach(d => cachedRecords.push(d.data()))
+    cachedRecords.sort((a,b) => b.date.localeCompare(a.date))
+    setSyncing(false)
+    // 현재 화면 갱신
+    const activeScreen = document.querySelector('.screen.on')?.id?.replace('s-','')
+    if(activeScreen === 'home') renderHome()
+    if(activeScreen === 'list') renderList()
+    if(activeScreen === 'stats') renderStats()
+    if(activeScreen === 'goal') renderGoal()
+  }, e => { toast('동기화 오류'); setSyncing(false) })
 
-      function fmt(n) {
-        return Number(n).toLocaleString();
-      }
-      function today() {
-        return new Date().toISOString().slice(0, 10);
-      }
-      function monthStart() {
-        return today().slice(0, 7) + "-01";
-      }
-      function currentMonth() {
-        return today().slice(0, 7);
-      }
-      function getRecords() {
-        return cachedRecords;
-      }
-      function getGoals() {
-        return cachedGoals;
-      }
+  // 목표 실시간 리스너
+  unsubGoals = onSnapshot(doc(db, 'users', uid, 'meta', 'goals'), snap => {
+    cachedGoals = snap.exists() ? snap.data() : {}
+  })
+}
 
-      function toast(msg) {
-        const el = document.getElementById("toast");
-        el.textContent = msg;
-        el.classList.add("show");
-        setTimeout(() => el.classList.remove("show"), 2000);
-      }
+async function loadAllData() {
+  startRealtimeSync(currentUser.uid)
+}
 
-      window.go = function (s) {
-        document
-          .querySelectorAll(".tab")
-          .forEach((t, i) =>
-            t.classList.toggle(
-              "on",
-              ["home", "input", "list", "stats", "goal"][i] === s,
-            ),
-          );
-        document
-          .querySelectorAll(".screen")
-          .forEach((el) => el.classList.remove("on"));
-        document.getElementById("s-" + s).classList.add("on");
-        document.getElementById("header-title").textContent = HEADERS[s];
-        if (s === "home") renderHome();
-        if (s === "input") {
-          const d = document.getElementById("i-date");
-          if (!d.value) d.value = today();
-          loadExistingRecord(d.value);
-        }
-        if (s === "list") renderList();
-        if (s === "stats") renderStats();
-        if (s === "goal") renderGoal();
-      };
+// ── 저장 ──────────────────────────────────────────
+async function saveRecordToDB(rec) {
+  setSyncing(true)
+  try {
+    const uid = currentUser.uid
+    await setDoc(doc(db, 'users', uid, 'records', rec.date), rec)
+    const idx = cachedRecords.findIndex(r => r.date === rec.date)
+    if (idx >= 0) cachedRecords[idx] = rec; else cachedRecords.push(rec)
+    cachedRecords.sort((a,b) => b.date.localeCompare(a.date))
+  } catch(e) { toast('저장 실패: ' + e.message) }
+  setSyncing(false)
+}
 
-      // ── 홈 ────────────────────────────────────────────
-      function renderHome() {
-        const d = new Date();
-        const dn = ["일", "월", "화", "수", "목", "금", "토"];
-        document.getElementById("home-date").textContent =
-          d.getFullYear() +
-          "년 " +
-          (d.getMonth() + 1) +
-          "월 " +
-          d.getDate() +
-          "일 (" +
-          dn[d.getDay()] +
-          ")";
-        const recs = getRecords().filter((r) => r.date === today());
-        const k = recs.reduce((a, r) => a + (+r.kakao || 0), 0);
-        const c = recs.reduce((a, r) => a + (+r.card || 0), 0);
-        const h = recs.reduce((a, r) => a + (+r.cash || 0), 0);
-        document.getElementById("home-kakao").textContent = fmt(k);
-        document.getElementById("home-card").textContent = fmt(c);
-        document.getElementById("home-cash").textContent = fmt(h);
-        document.getElementById("home-total").textContent =
-          fmt(k + c + h) + "원";
-        const ym = currentMonth(),
-          g = getGoals()[ym];
-        const gc = document.getElementById("home-goal-card");
-        if (!g) {
-          gc.style.display = "none";
-          return;
-        }
-        gc.style.display = "block";
-        const dayoffs = new Set(g.dayoffs || []);
-        const { wd, lng } = countDays(ym, dayoffs);
-        const [y, m] = ym.split("-").map(Number);
-        const lastDay = new Date(y, m, 0).getDate();
-        const from = ym + "-01",
-          to = ym + "-" + String(lastDay).padStart(2, "0");
-        const allRecs = getRecords().filter(
-          (r) => r.date >= from && r.date <= to,
-        );
-        const wdA = allRecs
-          .filter((r) => {
-            const dow = new Date(r.date + "T00:00:00").getDay();
-            return WD_DOWS.includes(dow) && !dayoffs.has(dow);
-          })
-          .reduce((a, r) => a + r.total, 0);
-        const lngA = allRecs
-          .filter((r) => {
-            const dow = new Date(r.date + "T00:00:00").getDay();
-            return LNG_DOWS.includes(dow) && !dayoffs.has(dow);
-          })
-          .reduce((a, r) => a + r.total, 0);
-        const totalA = wdA + lngA;
-        const monthGoal = wd * (g.wdGoal || 0) + lng * (g.lngGoal || 0);
-        const pct = monthGoal
-          ? Math.min(Math.round((totalA / monthGoal) * 100), 100)
-          : 0;
-        const color = (p) =>
-          p >= 100 ? "#2d7a1f" : p >= 70 ? "#1a5fa8" : "#8a5200";
-        document.getElementById("home-achieve").innerHTML = `
+async function saveGoalsToDB(goals) {
+  setSyncing(true)
+  try {
+    const uid = currentUser.uid
+    await setDoc(doc(db, 'users', uid, 'meta', 'goals'), goals)
+    cachedGoals = goals
+  } catch(e) { toast('목표 저장 실패') }
+  setSyncing(false)
+}
+
+// 포그라운드 복귀시 실시간 재연결
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible' && currentUser) {
+    setSyncing(true)
+    startRealtimeSync(currentUser.uid)
+  }
+})
+
+// ── 유틸 ──────────────────────────────────────────
+const DAY_NAMES = ['일','월','화','수','목','금','토']
+const WD_DOWS = [1,2,3,4]
+const LNG_DOWS = [5,6,0]
+let selectedDayoffs = new Set()
+const HEADERS = {home:'홈',input:'매출 입력',list:'내역',stats:'통계',goal:'목표 설정'}
+
+function fmt(n) { return Number(n).toLocaleString() }
+function today() { return new Date().toISOString().slice(0,10) }
+function monthStart() { return today().slice(0,7)+'-01' }
+function currentMonth() { return today().slice(0,7) }
+function getRecords() { return cachedRecords }
+function getGoals() { return cachedGoals }
+
+function toast(msg) {
+  const el = document.getElementById('toast')
+  el.textContent = msg; el.classList.add('show')
+  setTimeout(() => el.classList.remove('show'), 2000)
+}
+
+window.go = function(s) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('on', ['home','input','list','stats','goal'][i]===s))
+  document.querySelectorAll('.screen').forEach(el => el.classList.remove('on'))
+  document.getElementById('s-'+s).classList.add('on')
+  document.getElementById('header-title').textContent = HEADERS[s]
+  if(s==='home') renderHome()
+  if(s==='input') { const d=document.getElementById('i-date'); if(!d.value) d.value=today(); loadExistingRecord(d.value) }
+  if(s==='list') renderList()
+  if(s==='stats') renderStats()
+  if(s==='goal') renderGoal()
+}
+
+// ── 홈 ────────────────────────────────────────────
+function renderHome() {
+  const d = new Date()
+  const dn = ['일','월','화','수','목','금','토']
+  document.getElementById('home-date').textContent =
+    d.getFullYear()+'년 '+(d.getMonth()+1)+'월 '+d.getDate()+'일 ('+dn[d.getDay()]+')'
+  const recs = getRecords().filter(r => r.date===today())
+  const k = recs.reduce((a,r)=>a+(+r.kakao||0),0)
+  const c = recs.reduce((a,r)=>a+(+r.card||0),0)
+  const h = recs.reduce((a,r)=>a+(+r.cash||0),0)
+  document.getElementById('home-kakao').textContent = fmt(k)
+  document.getElementById('home-card').textContent = fmt(c)
+  document.getElementById('home-cash').textContent = fmt(h)
+  document.getElementById('home-total').textContent = fmt(k+c+h)+'원'
+  const ym = currentMonth(), g = getGoals()[ym]
+  const gc = document.getElementById('home-goal-card')
+  if(!g){gc.style.display='none';return}
+  gc.style.display='block'
+  const dayoffs = new Set(g.dayoffs||[])
+  const{wd,lng} = countDays(ym,dayoffs)
+  const[y,m] = ym.split('-').map(Number)
+  const lastDay = new Date(y,m,0).getDate()
+  const from = ym+'-01', to = ym+'-'+String(lastDay).padStart(2,'0')
+  const allRecs = getRecords().filter(r=>r.date>=from&&r.date<=to)
+  const wdA = allRecs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return WD_DOWS.includes(dow)&&!dayoffs.has(dow)}).reduce((a,r)=>a+r.total,0)
+  const lngA = allRecs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return LNG_DOWS.includes(dow)&&!dayoffs.has(dow)}).reduce((a,r)=>a+r.total,0)
+  const totalA = wdA+lngA
+  const monthGoal = wd*(g.wdGoal||0)+lng*(g.lngGoal||0)
+  const pct = monthGoal?Math.min(Math.round(totalA/monthGoal*100),100):0
+  const color = p=>p>=100?'#2d7a1f':p>=70?'#1a5fa8':'#8a5200'
+  document.getElementById('home-achieve').innerHTML=`
     <div class="achieve-row"><span>이달 달성률</span><span class="achieve-pct" style="color:${color(pct)}">${pct}%</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${color(pct)}"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-top:4px"><span>${fmt(totalA)}원</span><span>목표 ${fmt(monthGoal)}원</span></div>`;
-      }
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-top:4px"><span>${fmt(totalA)}원</span><span>목표 ${fmt(monthGoal)}원</span></div>`
+}
 
-      // ── 입력 ──────────────────────────────────────────
-      function loadExistingRecord(date) {
-        const rec = getRecords().find((r) => r.date === date);
-        document.getElementById("i-kakao").value = rec ? rec.kakao || "" : "";
-        document.getElementById("i-card").value = rec ? rec.card || "" : "";
-        document.getElementById("i-cash").value = rec ? rec.cash || "" : "";
-        document.getElementById("i-kakao-cnt").value = rec
-          ? rec.kakaoCnt || ""
-          : "";
-        document.getElementById("i-card-cnt").value = rec
-          ? rec.cardCnt || ""
-          : "";
-        document.getElementById("i-cash-cnt").value = rec
-          ? rec.cashCnt || ""
-          : "";
-        document.getElementById("i-memo").value = rec ? rec.memo || "" : "";
-        const k = +(rec?.kakao || 0),
-          c = +(rec?.card || 0),
-          h = +(rec?.cash || 0);
-        const kc = +(rec?.kakaoCnt || 0),
-          cc = +(rec?.cardCnt || 0),
-          hc = +(rec?.cashCnt || 0);
-        document.getElementById("i-total").textContent = fmt(k + c + h) + "원";
-        const tc = kc + cc + hc;
-        document.getElementById("i-total-cnt").textContent = tc
-          ? "총 " + tc + "건"
-          : "";
-      }
+// ── 입력 ──────────────────────────────────────────
+function loadExistingRecord(date) {
+  const rec = getRecords().find(r => r.date === date)
+  document.getElementById('i-kakao').value     = rec ? rec.kakao||'' : ''
+  document.getElementById('i-card').value      = rec ? rec.card||''  : ''
+  document.getElementById('i-cash').value      = rec ? rec.cash||''  : ''
+  document.getElementById('i-kakao-cnt').value = rec ? rec.kakaoCnt||'' : ''
+  document.getElementById('i-card-cnt').value  = rec ? rec.cardCnt||''  : ''
+  document.getElementById('i-cash-cnt').value  = rec ? rec.cashCnt||''  : ''
+  document.getElementById('i-memo').value      = rec ? rec.memo||''  : ''
+  const k=+(rec?.kakao||0), c=+(rec?.card||0), h=+(rec?.cash||0)
+  const kc=+(rec?.kakaoCnt||0), cc=+(rec?.cardCnt||0), hc=+(rec?.cashCnt||0)
+  document.getElementById('i-total').textContent = fmt(k+c+h)+'원'
+  const tc=kc+cc+hc
+  document.getElementById('i-total-cnt').textContent = tc ? '총 '+tc+'건' : ''
+}
 
-      document.getElementById("i-date").value = today();
-      loadExistingRecord(today());
+document.getElementById('i-date').value = today()
+loadExistingRecord(today())
 
-      document.getElementById("i-date").addEventListener("change", function () {
-        loadExistingRecord(this.value);
-      });
-      [
-        "i-kakao",
-        "i-card",
-        "i-cash",
-        "i-kakao-cnt",
-        "i-card-cnt",
-        "i-cash-cnt",
-      ].forEach((id) =>
-        document.getElementById(id).addEventListener("input", () => {
-          const k = +document.getElementById("i-kakao").value || 0;
-          const c = +document.getElementById("i-card").value || 0;
-          const h = +document.getElementById("i-cash").value || 0;
-          const kc = +document.getElementById("i-kakao-cnt").value || 0;
-          const cc = +document.getElementById("i-card-cnt").value || 0;
-          const hc = +document.getElementById("i-cash-cnt").value || 0;
-          document.getElementById("i-total").textContent =
-            fmt(k + c + h) + "원";
-          const tc = kc + cc + hc;
-          document.getElementById("i-total-cnt").textContent = tc
-            ? "총 " + tc + "건"
-            : "";
-        }),
-      );
+document.getElementById('i-date').addEventListener('change', function() {
+  loadExistingRecord(this.value)
+})
 
-      window.saveRecord = async function () {
-        const date = document.getElementById("i-date").value;
-        const kakao = +document.getElementById("i-kakao").value || 0;
-        const card = +document.getElementById("i-card").value || 0;
-        const cash = +document.getElementById("i-cash").value || 0;
-        const kakaoCnt = +document.getElementById("i-kakao-cnt").value || 0;
-        const cardCnt = +document.getElementById("i-card-cnt").value || 0;
-        const cashCnt = +document.getElementById("i-cash-cnt").value || 0;
-        const memo = document.getElementById("i-memo").value.trim();
-        if (!kakao && !card && !cash) {
-          toast("금액을 입력해주세요");
-          return;
-        }
-        const totalCnt = kakaoCnt + cardCnt + cashCnt;
-        const rec = {
-          date,
-          kakao,
-          card,
-          cash,
-          kakaoCnt,
-          cardCnt,
-          cashCnt,
-          totalCnt,
-          memo,
-          total: kakao + card + cash,
-        };
-        await saveRecordToDB(rec);
-        toast("저장됐습니다!");
-        setTimeout(() => go("home"), 800);
-      };
+;['i-kakao','i-card','i-cash','i-kakao-cnt','i-card-cnt','i-cash-cnt'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  const k=+document.getElementById('i-kakao').value||0
+  const c=+document.getElementById('i-card').value||0
+  const h=+document.getElementById('i-cash').value||0
+  const kc=+document.getElementById('i-kakao-cnt').value||0
+  const cc=+document.getElementById('i-card-cnt').value||0
+  const hc=+document.getElementById('i-cash-cnt').value||0
+  document.getElementById('i-total').textContent=fmt(k+c+h)+'원'
+  const tc=kc+cc+hc
+  document.getElementById('i-total-cnt').textContent=tc?'총 '+tc+'건':''
+}))
 
-      // ── 내역 ──────────────────────────────────────────
-      const lFrom = document.getElementById("l-from"),
-        lTo = document.getElementById("l-to");
-      lFrom.value = monthStart();
-      lTo.value = today();
+window.saveRecord = async function() {
+  const date=document.getElementById('i-date').value
+  const kakao=+document.getElementById('i-kakao').value||0
+  const card=+document.getElementById('i-card').value||0
+  const cash=+document.getElementById('i-cash').value||0
+  const kakaoCnt=+document.getElementById('i-kakao-cnt').value||0
+  const cardCnt=+document.getElementById('i-card-cnt').value||0
+  const cashCnt=+document.getElementById('i-cash-cnt').value||0
+  const memo=document.getElementById('i-memo').value.trim()
+  if(!kakao&&!card&&!cash){toast('금액을 입력해주세요');return}
+  const totalCnt=kakaoCnt+cardCnt+cashCnt
+  const rec={date,kakao,card,cash,kakaoCnt,cardCnt,cashCnt,totalCnt,memo,total:kakao+card+cash}
+  await saveRecordToDB(rec)
+  toast('저장됐습니다!')
+  setTimeout(()=>go('home'), 800)
+}
 
-      window.renderList = function () {
-        const from = lFrom.value,
-          to = lTo.value;
-        const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
-        const el = document.getElementById("list-body");
-        if (!recs.length) {
-          el.innerHTML = '<div class="empty">해당 기간 내역 없음</div>';
-          return;
-        }
-        el.innerHTML = recs
-          .map(
-            (r) => `
+// ── 내역 ──────────────────────────────────────────
+const lFrom=document.getElementById('l-from'),lTo=document.getElementById('l-to')
+lFrom.value=monthStart();lTo.value=today()
+
+window.renderList = function() {
+  const from=lFrom.value,to=lTo.value
+  const recs=getRecords().filter(r=>r.date>=from&&r.date<=to)
+  const el=document.getElementById('list-body')
+  if(!recs.length){el.innerHTML='<div class="empty">해당 기간 내역 없음</div>';return}
+  el.innerHTML=recs.map(r=>`
     <div class="list-card">
-      <div><div class="list-date">${r.date}</div><div class="list-sub">${r.memo || ""}</div></div>
+      <div><div class="list-date">${r.date}</div><div class="list-sub">${r.memo||''}</div></div>
       <div style="text-align:right">
-        <div class="list-amount">${fmt(r.total)}원 ${r.totalCnt ? '<span style="font-size:12px;color:#888;font-weight:400">' + r.totalCnt + "건</span>" : ""}</div>
+        <div class="list-amount">${fmt(r.total)}원 ${r.totalCnt?'<span style="font-size:12px;color:#888;font-weight:400">'+r.totalCnt+'건</span>':''}</div>
         <div class="badges">
-          ${r.kakao ? `<span class="badge" style="background:#e8f5e0;color:#2d7a1f">${fmt(r.kakao)}${r.kakaoCnt ? " " + r.kakaoCnt + "건" : ""}</span>` : ""}
-          ${r.card ? `<span class="badge" style="background:#e0eeff;color:#1a5fa8">${fmt(r.card)}${r.cardCnt ? " " + r.cardCnt + "건" : ""}</span>` : ""}
-          ${r.cash ? `<span class="badge" style="background:#fff3e0;color:#8a5200">${fmt(r.cash)}${r.cashCnt ? " " + r.cashCnt + "건" : ""}</span>` : ""}
+          ${r.kakao?`<span class="badge" style="background:#e8f5e0;color:#2d7a1f">${fmt(r.kakao)}${r.kakaoCnt?' '+r.kakaoCnt+'건':''}</span>`:''}
+          ${r.card?`<span class="badge" style="background:#e0eeff;color:#1a5fa8">${fmt(r.card)}${r.cardCnt?' '+r.cardCnt+'건':''}</span>`:''}
+          ${r.cash?`<span class="badge" style="background:#fff3e0;color:#8a5200">${fmt(r.cash)}${r.cashCnt?' '+r.cashCnt+'건':''}</span>`:''}
         </div>
       </div>
-    </div>`,
-          )
-          .join("");
-      };
+    </div>`).join('')
+}
 
-      // ── 통계 ──────────────────────────────────────────
-      const tFrom = document.getElementById("t-from"),
-        tTo = document.getElementById("t-to");
-      tFrom.value = monthStart();
-      tTo.value = today();
+// ── 통계 ──────────────────────────────────────────
+const tFrom=document.getElementById('t-from'),tTo=document.getElementById('t-to')
+tFrom.value=monthStart();tTo.value=today()
 
-      window.setRange = function (t) {
-        const d = new Date();
-        if (t === "month") {
-          tFrom.value = today().slice(0, 7) + "-01";
-          tTo.value = today();
-        } else {
-          const day = d.getDay() || 7;
-          const mon = new Date(d);
-          mon.setDate(d.getDate() - day + 1);
-          tFrom.value = mon.toISOString().slice(0, 10);
-          tTo.value = today();
-        }
-        renderStats();
-      };
+window.setRange = function(t) {
+  const d=new Date()
+  if(t==='month'){tFrom.value=today().slice(0,7)+'-01';tTo.value=today()}
+  else{const day=d.getDay()||7;const mon=new Date(d);mon.setDate(d.getDate()-day+1);tFrom.value=mon.toISOString().slice(0,10);tTo.value=today()}
+  renderStats()
+}
 
-      window.renderStats = function () {
-        const from = tFrom.value,
-          to = tTo.value;
-        const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
-        const el = document.getElementById("stats-body");
-        if (!recs.length) {
-          el.innerHTML =
-            '<div class="card"><div class="empty">해당 기간 내역 없음</div></div>';
-          return;
-        }
-        const total = recs.reduce((a, r) => a + r.total, 0);
-        const kakao = recs.reduce((a, r) => a + (+r.kakao || 0), 0);
-        const card = recs.reduce((a, r) => a + (+r.card || 0), 0);
-        const cash = recs.reduce((a, r) => a + (+r.cash || 0), 0);
-        const kakaoCnt = recs.reduce((a, r) => a + (+r.kakaoCnt || 0), 0);
-        const cardCnt = recs.reduce((a, r) => a + (+r.cardCnt || 0), 0);
-        const cashCnt = recs.reduce((a, r) => a + (+r.cashCnt || 0), 0);
-        const totalCnt = kakaoCnt + cardCnt + cashCnt;
-        const days = recs.length,
-          avg = days ? Math.round(total / days) : 0;
-        const avgCnt =
-          totalCnt && days ? Math.round((totalCnt / days) * 10) / 10 : 0;
-        const pct = (v) => (total ? Math.round((v / total) * 100) : 0);
-        const pctCnt = (v) => (totalCnt ? Math.round((v / totalCnt) * 100) : 0);
+window.renderStats = function() {
+  const from=tFrom.value,to=tTo.value
+  const recs=getRecords().filter(r=>r.date>=from&&r.date<=to)
+  const el=document.getElementById('stats-body')
+  if(!recs.length){el.innerHTML='<div class="card"><div class="empty">해당 기간 내역 없음</div></div>';return}
+  const total=recs.reduce((a,r)=>a+r.total,0)
+  const kakao=recs.reduce((a,r)=>a+(+r.kakao||0),0)
+  const card=recs.reduce((a,r)=>a+(+r.card||0),0)
+  const cash=recs.reduce((a,r)=>a+(+r.cash||0),0)
+  const kakaoCnt=recs.reduce((a,r)=>a+(+r.kakaoCnt||0),0)
+  const cardCnt=recs.reduce((a,r)=>a+(+r.cardCnt||0),0)
+  const cashCnt=recs.reduce((a,r)=>a+(+r.cashCnt||0),0)
+  const totalCnt=kakaoCnt+cardCnt+cashCnt
+  const days=recs.length,avg=days?Math.round(total/days):0
+  const avgCnt=totalCnt&&days?Math.round(totalCnt/days*10)/10:0
+  const pct=v=>total?Math.round(v/total*100):0
+  const pctCnt=v=>totalCnt?Math.round(v/totalCnt*100):0
 
-        // 요일별 집계
-        const dowNames = ["일", "월", "화", "수", "목", "금", "토"];
-        const dowData = Array.from({ length: 7 }, () => ({
-          total: 0,
-          cnt: 0,
-          days: 0,
-        }));
-        recs.forEach((r) => {
-          const dow = new Date(r.date + "T00:00:00").getDay();
-          dowData[dow].total += r.total;
-          dowData[dow].cnt += +r.totalCnt || 0;
-          dowData[dow].days++;
-        });
-        const maxAvgTotal = Math.max(
-          ...dowData.map((d) => (d.days ? Math.round(d.total / d.days) : 0)),
-          1,
-        );
-        const dowBars = dowData
-          .map((d, i) => {
-            const avgT = d.days ? Math.round(d.total / d.days) : 0;
-            const avgC = d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0;
-            const w = Math.round((avgT / maxAvgTotal) * 100);
-            const color = i === 0 ? "#E24B4A" : i === 6 ? "#1a5fa8" : "#2d7a1f";
-            return `<div class="bar-item">
+  // 요일별 집계
+  const dowNames=['일','월','화','수','목','금','토']
+  const dowData=Array.from({length:7},()=>({total:0,cnt:0,days:0}))
+  recs.forEach(r=>{
+    const dow=new Date(r.date+'T00:00:00').getDay()
+    dowData[dow].total+=r.total
+    dowData[dow].cnt+=(+r.totalCnt||0)
+    dowData[dow].days++
+  })
+  const maxAvgTotal=Math.max(...dowData.map(d=>d.days?Math.round(d.total/d.days):0),1)
+  const dowBars=dowData.map((d,i)=>{
+    const avgT=d.days?Math.round(d.total/d.days):0
+    const avgC=d.days?Math.round(d.cnt/d.days*10)/10:0
+    const w=Math.round(avgT/maxAvgTotal*100)
+    const color=i===0?'#E24B4A':i===6?'#1a5fa8':'#2d7a1f'
+    return `<div class="bar-item">
       <div class="bar-label">
         <span style="font-weight:600;color:${color};width:20px;display:inline-block">${dowNames[i]}</span>
         <span style="color:#888;font-size:11px">${d.days}일 운행</span>
-        <span>${avgT ? fmt(avgT) + "원" : "휴무"} ${avgC ? avgC + "건" : ""}</span>
+        <span>${avgT?fmt(avgT)+'원':'휴무'} ${avgC?avgC+'건':''}</span>
       </div>
       <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
-    </div>`;
-          })
-          .join("");
+    </div>`
+  }).join('')
 
-        el.innerHTML = `
+  el.innerHTML=`
   <div class="card">
     <div class="card-title">기간 합계 (${days}일)</div>
     <div class="stat-row"><span style="color:#888">총 매출</span><span style="font-weight:700">${fmt(total)}원</span></div>
-    <div class="stat-row"><span style="color:#888">총 건수</span><span style="font-weight:700">${totalCnt ? totalCnt + "건" : "-"}</span></div>
+    <div class="stat-row"><span style="color:#888">총 건수</span><span style="font-weight:700">${totalCnt?totalCnt+'건':'-'}</span></div>
     <div class="stat-row"><span style="color:#888">일 평균 매출</span><span style="font-weight:700">${fmt(avg)}원</span></div>
-    <div class="stat-row"><span style="color:#888">일 평균 건수</span><span style="font-weight:700">${avgCnt ? avgCnt + "건" : "-"}</span></div>
-    <div class="stat-row"><span style="color:#888">최고 매출일</span><span style="font-weight:700">${recs.reduce((a, r) => (r.total > a.total ? r : a), recs[0]).date}</span></div>
+    <div class="stat-row"><span style="color:#888">일 평균 건수</span><span style="font-weight:700">${avgCnt?avgCnt+'건':'-'}</span></div>
+    <div class="stat-row"><span style="color:#888">최고 매출일</span><span style="font-weight:700">${recs.reduce((a,r)=>r.total>a.total?r:a,recs[0]).date}</span></div>
   </div>
   <div class="card">
     <div class="card-title">결제 수단별</div>
     <div style="margin-top:8px">
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag kakao-tag">카카오T</span><span>${fmt(kakao)}원 ${kakaoCnt ? kakaoCnt + "건" : ""} (${pct(kakao)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(kakao)}%;background:#2d7a1f"></div></div></div>
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag card-tag">카드</span><span>${fmt(card)}원 ${cardCnt ? cardCnt + "건" : ""} (${pct(card)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(card)}%;background:#1a5fa8"></div></div></div>
-      <div class="bar-item"><div class="bar-label"><span class="amount-tag cash-tag">현금</span><span>${fmt(cash)}원 ${cashCnt ? cashCnt + "건" : ""} (${pct(cash)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(cash)}%;background:#8a5200"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span class="amount-tag kakao-tag">카카오T</span><span>${fmt(kakao)}원 / ${kakaoCnt}건 (${pct(kakao)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(kakao)}%;background:#2d7a1f"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span class="amount-tag card-tag">카드</span><span>${fmt(card)}원 / ${cardCnt}건 (${pct(card)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(card)}%;background:#1a5fa8"></div></div></div>
+      <div class="bar-item"><div class="bar-label"><span class="amount-tag cash-tag">현금</span><span>${fmt(cash)}원 / ${cashCnt}건 (${pct(cash)}%)</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct(cash)}%;background:#8a5200"></div></div></div>
     </div>
   </div>
   <div class="card">
     <div class="card-title">요일별 평균 매출·건수</div>
     <div style="margin-top:8px">${dowBars}</div>
     <div style="font-size:11px;color:#aaa;margin-top:8px;text-align:right">막대 = 평균 매출 기준</div>
-  </div>`;
-      };
+  </div>`
+}
 
-      // ── 목표 ──────────────────────────────────────────
-      function countDays(ym, dayoffs) {
-        const [y, m] = ym.split("-").map(Number);
-        const days = new Date(y, m, 0).getDate();
-        let wd = 0,
-          lng = 0;
-        for (let d = 1; d <= days; d++) {
-          const dow = new Date(y, m - 1, d).getDay();
-          if (dayoffs.has(dow)) continue;
-          if (WD_DOWS.includes(dow)) wd++;
-          else if (LNG_DOWS.includes(dow)) lng++;
-        }
-        return { wd, lng, total: wd + lng };
-      }
+// ── 목표 ──────────────────────────────────────────
+function countDays(ym,dayoffs){
+  const[y,m]=ym.split('-').map(Number)
+  const days=new Date(y,m,0).getDate()
+  let wd=0,lng=0
+  for(let d=1;d<=days;d++){const dow=new Date(y,m-1,d).getDay();if(dayoffs.has(dow))continue;if(WD_DOWS.includes(dow))wd++;else if(LNG_DOWS.includes(dow))lng++}
+  return{wd,lng,total:wd+lng}
+}
 
-      function buildDayoffButtons() {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const [y, m] = ym.split("-").map(Number);
-        const daysInMonth = new Date(y, m, 0).getDate();
-        const dc = [0, 0, 0, 0, 0, 0, 0];
-        for (let d = 1; d <= daysInMonth; d++)
-          dc[new Date(y, m - 1, d).getDay()]++;
-        function makeBtn(dow, group) {
-          const btn = document.createElement("button");
-          btn.className = "dayoff-btn";
-          btn.innerHTML =
-            DAY_NAMES[dow] +
-            '<br><span style="font-size:10px;font-weight:400">' +
-            dc[dow] +
-            "주</span>";
-          if (dc[dow] === 0) btn.classList.add("off");
-          if (selectedDayoffs.has(dow)) btn.classList.add("sel-" + group);
-          btn.onclick = () => {
-            if (selectedDayoffs.has(dow)) {
-              selectedDayoffs.delete(dow);
-              btn.className = "dayoff-btn";
-            } else {
-              selectedDayoffs.add(dow);
-              btn.classList.add("sel-" + group);
-            }
-            updateDayoffNote();
-            calcDayCounts();
-            calcGoalPreview();
-          };
-          return btn;
-        }
-        const ww = document.getElementById("wd-btns"),
-          lw = document.getElementById("lng-btns");
-        ww.innerHTML = "";
-        lw.innerHTML = "";
-        WD_DOWS.forEach((d) => ww.appendChild(makeBtn(d, "wd")));
-        LNG_DOWS.forEach((d) => lw.appendChild(makeBtn(d, "lng")));
-        updateDayoffNote();
-      }
+function buildDayoffButtons(){
+  const ym=document.getElementById('g-month').value||currentMonth()
+  const[y,m]=ym.split('-').map(Number)
+  const daysInMonth=new Date(y,m,0).getDate()
+  const dc=[0,0,0,0,0,0,0]
+  for(let d=1;d<=daysInMonth;d++) dc[new Date(y,m-1,d).getDay()]++
+  function makeBtn(dow,group){
+    const btn=document.createElement('button')
+    btn.className='dayoff-btn'
+    btn.innerHTML=DAY_NAMES[dow]+'<br><span style="font-size:10px;font-weight:400">'+dc[dow]+'주</span>'
+    if(dc[dow]===0)btn.classList.add('off')
+    if(selectedDayoffs.has(dow))btn.classList.add('sel-'+group)
+    btn.onclick=()=>{
+      if(selectedDayoffs.has(dow)){selectedDayoffs.delete(dow);btn.className='dayoff-btn'}
+      else{selectedDayoffs.add(dow);btn.classList.add('sel-'+group)}
+      updateDayoffNote();calcDayCounts();calcGoalPreview()
+    }
+    return btn
+  }
+  const ww=document.getElementById('wd-btns'),lw=document.getElementById('lng-btns')
+  ww.innerHTML='';lw.innerHTML=''
+  WD_DOWS.forEach(d=>ww.appendChild(makeBtn(d,'wd')))
+  LNG_DOWS.forEach(d=>lw.appendChild(makeBtn(d,'lng')))
+  updateDayoffNote()
+}
 
-      function updateDayoffNote() {
-        const el = document.getElementById("dayoff-note");
-        if (selectedDayoffs.size === 0) {
-          el.textContent = "";
-          return;
-        }
-        const order = [1, 2, 3, 4, 5, 6, 0];
-        el.textContent =
-          "매주 " +
-          [...selectedDayoffs]
-            .sort((a, b) => order.indexOf(a) - order.indexOf(b))
-            .map((d) => DAY_NAMES[d])
-            .join("·") +
-          " 휴무 적용";
-      }
+function updateDayoffNote(){
+  const el=document.getElementById('dayoff-note')
+  if(selectedDayoffs.size===0){el.textContent='';return}
+  const order=[1,2,3,4,5,6,0]
+  el.textContent='매주 '+[...selectedDayoffs].sort((a,b)=>order.indexOf(a)-order.indexOf(b)).map(d=>DAY_NAMES[d]).join('·')+' 휴무 적용'
+}
 
-      function calcDayCounts() {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const { wd, lng, total } = countDays(ym, selectedDayoffs);
-        document.getElementById("g-wd-count").textContent = wd;
-        document.getElementById("g-lng-count").textContent = lng;
-        document.getElementById("g-total-days").textContent = total;
-      }
+function calcDayCounts(){
+  const ym=document.getElementById('g-month').value||currentMonth()
+  const{wd,lng,total}=countDays(ym,selectedDayoffs)
+  document.getElementById('g-wd-count').textContent=wd
+  document.getElementById('g-lng-count').textContent=lng
+  document.getElementById('g-total-days').textContent=total
+}
 
-      function calcGoalPreview() {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const { wd, lng } = countDays(ym, selectedDayoffs);
-        const wg = +document.getElementById("g-wd-goal").value || 0;
-        const lg = +document.getElementById("g-lng-goal").value || 0;
-        const wt = wd * wg,
-          lt = lng * lg,
-          mt = wt + lt;
-        document.getElementById("g-wd-total").textContent = wt
-          ? fmt(wt) + "원"
-          : "-";
-        document.getElementById("g-lng-total").textContent = lt
-          ? fmt(lt) + "원"
-          : "-";
-        document.getElementById("g-month-total").textContent = mt
-          ? fmt(mt) + "원"
-          : "-";
-      }
+function calcGoalPreview(){
+  const ym=document.getElementById('g-month').value||currentMonth()
+  const{wd,lng}=countDays(ym,selectedDayoffs)
+  const wg=+document.getElementById('g-wd-goal').value||0
+  const lg=+document.getElementById('g-lng-goal').value||0
+  const wt=wd*wg,lt=lng*lg,mt=wt+lt
+  document.getElementById('g-wd-total').textContent=wt?fmt(wt)+'원':'-'
+  document.getElementById('g-lng-total').textContent=lt?fmt(lt)+'원':'-'
+  document.getElementById('g-month-total').textContent=mt?fmt(mt)+'원':'-'
+}
 
-      const gMonth = document.getElementById("g-month");
-      gMonth.value = currentMonth();
-      gMonth.addEventListener("change", () => {
-        selectedDayoffs = new Set();
-        renderGoal();
-      });
-      ["g-wd-goal", "g-lng-goal"].forEach((id) =>
-        document.getElementById(id).addEventListener("input", calcGoalPreview),
-      );
+const gMonth=document.getElementById('g-month')
+gMonth.value=currentMonth()
+gMonth.addEventListener('change',()=>{selectedDayoffs=new Set();renderGoal()})
+;['g-wd-goal','g-lng-goal'].forEach(id=>document.getElementById(id).addEventListener('input',calcGoalPreview))
 
-      function renderGoal() {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const g = getGoals()[ym] || {};
-        selectedDayoffs = g.dayoffs ? new Set(g.dayoffs) : new Set();
-        buildDayoffButtons();
-        calcDayCounts();
-        document.getElementById("g-wd-goal").value = g.wdGoal || "";
-        document.getElementById("g-lng-goal").value = g.lngGoal || "";
-        calcGoalPreview();
-        renderAchieve(ym);
-      }
+function renderGoal(){
+  const ym=document.getElementById('g-month').value||currentMonth()
+  const g=getGoals()[ym]||{}
+  selectedDayoffs=g.dayoffs?new Set(g.dayoffs):new Set()
+  buildDayoffButtons();calcDayCounts()
+  document.getElementById('g-wd-goal').value=g.wdGoal||''
+  document.getElementById('g-lng-goal').value=g.lngGoal||''
+  calcGoalPreview();renderAchieve(ym)
+}
 
-      window.saveGoal = async function () {
-        const ym = document.getElementById("g-month").value || currentMonth();
-        const wdGoal = +document.getElementById("g-wd-goal").value || 0;
-        const lngGoal = +document.getElementById("g-lng-goal").value || 0;
-        if (!wdGoal && !lngGoal) {
-          toast("목표 금액을 입력해주세요");
-          return;
-        }
-        const goals = { ...getGoals() };
-        goals[ym] = { wdGoal, lngGoal, dayoffs: [...selectedDayoffs] };
-        await saveGoalsToDB(goals);
-        renderAchieve(ym);
-        toast("목표가 저장됐습니다!");
-      };
+window.saveGoal = async function(){
+  const ym=document.getElementById('g-month').value||currentMonth()
+  const wdGoal=+document.getElementById('g-wd-goal').value||0
+  const lngGoal=+document.getElementById('g-lng-goal').value||0
+  if(!wdGoal&&!lngGoal){toast('목표 금액을 입력해주세요');return}
+  const goals={...getGoals()}
+  goals[ym]={wdGoal,lngGoal,dayoffs:[...selectedDayoffs]}
+  await saveGoalsToDB(goals)
+  renderAchieve(ym)
+  toast('목표가 저장됐습니다!')
+}
 
-      function renderAchieve(ym) {
-        const g = getGoals()[ym];
-        const el = document.getElementById("achieve-body");
-        if (!g) {
-          el.innerHTML =
-            '<div class="empty">목표를 저장하면 달성률이 표시됩니다</div>';
-          return;
-        }
-        const dayoffs = new Set(g.dayoffs || []);
-        const { wd, lng } = countDays(ym, dayoffs);
-        const [y, m] = ym.split("-").map(Number);
-        const lastDay = new Date(y, m, 0).getDate();
-        const from = ym + "-01",
-          to = ym + "-" + String(lastDay).padStart(2, "0");
-        const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
-        const wdRecs = recs.filter((r) => {
-          const dow = new Date(r.date + "T00:00:00").getDay();
-          return WD_DOWS.includes(dow) && !dayoffs.has(dow);
-        });
-        const lngRecs = recs.filter((r) => {
-          const dow = new Date(r.date + "T00:00:00").getDay();
-          return LNG_DOWS.includes(dow) && !dayoffs.has(dow);
-        });
-        const wdA = wdRecs.reduce((a, r) => a + r.total, 0);
-        const lngA = lngRecs.reduce((a, r) => a + r.total, 0);
-        const totalA = wdA + lngA;
-        const wdGT = wd * (g.wdGoal || 0),
-          lngGT = lng * (g.lngGoal || 0),
-          monthGT = wdGT + lngGT;
-        const pct = (v) => Math.min(Math.round(v), 100);
-        const wdP = wdGT ? pct((wdA / wdGT) * 100) : 0,
-          lngP = lngGT ? pct((lngA / lngGT) * 100) : 0,
-          totP = monthGT ? pct((totalA / monthGT) * 100) : 0;
-        const color = (p) =>
-          p >= 100 ? "#2d7a1f" : p >= 70 ? "#1a5fa8" : "#8a5200";
-        const order = [1, 2, 3, 4, 5, 6, 0];
-        const dn = [...dayoffs]
-          .sort((a, b) => order.indexOf(a) - order.indexOf(b))
-          .map((d) => DAY_NAMES[d])
-          .join("·");
-        el.innerHTML = `
-    ${dn ? `<div style="font-size:12px;color:#888;margin-bottom:10px">휴무 제외: 매주 ${dn}</div>` : ""}
+function renderAchieve(ym){
+  const g=getGoals()[ym]
+  const el=document.getElementById('achieve-body')
+  if(!g){el.innerHTML='<div class="empty">목표를 저장하면 달성률이 표시됩니다</div>';return}
+  const dayoffs=new Set(g.dayoffs||[])
+  const{wd,lng}=countDays(ym,dayoffs)
+  const[y,m]=ym.split('-').map(Number)
+  const lastDay=new Date(y,m,0).getDate()
+  const from=ym+'-01',to=ym+'-'+String(lastDay).padStart(2,'0')
+  const recs=getRecords().filter(r=>r.date>=from&&r.date<=to)
+  const wdRecs=recs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return WD_DOWS.includes(dow)&&!dayoffs.has(dow)})
+  const lngRecs=recs.filter(r=>{const dow=new Date(r.date+'T00:00:00').getDay();return LNG_DOWS.includes(dow)&&!dayoffs.has(dow)})
+  const wdA=wdRecs.reduce((a,r)=>a+r.total,0)
+  const lngA=lngRecs.reduce((a,r)=>a+r.total,0)
+  const totalA=wdA+lngA
+  const wdGT=wd*(g.wdGoal||0),lngGT=lng*(g.lngGoal||0),monthGT=wdGT+lngGT
+  const pct=v=>Math.min(Math.round(v),100)
+  const wdP=wdGT?pct(wdA/wdGT*100):0,lngP=lngGT?pct(lngA/lngGT*100):0,totP=monthGT?pct(totalA/monthGT*100):0
+  const color=p=>p>=100?'#2d7a1f':p>=70?'#1a5fa8':'#8a5200'
+  const order=[1,2,3,4,5,6,0]
+  const dn=[...dayoffs].sort((a,b)=>order.indexOf(a)-order.indexOf(b)).map(d=>DAY_NAMES[d]).join('·')
+  el.innerHTML=`
+    ${dn?`<div style="font-size:12px;color:#888;margin-bottom:10px">휴무 제외: 매주 ${dn}</div>`:''}
     <div class="achieve-row"><span>월 전체</span><span class="achieve-pct" style="color:${color(totP)}">${totP}%</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${totP}%;background:${color(totP)}"></div></div>
     <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:14px"><span>${fmt(totalA)}원</span><span>목표 ${fmt(monthGT)}원</span></div>
@@ -1846,35 +769,22 @@
     <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:10px"><span>${fmt(wdA)}원 (${wdRecs.length}일 / 목표 ${wd}일)</span><span>목표 ${fmt(wdGT)}원</span></div>
     <div class="achieve-row"><span><span class="amount-tag long-tag">12시간영업</span></span><span class="achieve-pct" style="color:${color(lngP)}">${lngP}%</span></div>
     <div class="progress-track"><div class="progress-fill" style="width:${lngP}%;background:#8a5200"></div></div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;color:#888"><span>${fmt(lngA)}원 (${lngRecs.length}일 / 목표 ${lng}일)</span><span>목표 ${fmt(lngGT)}원</span></div>`;
-      }
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#888"><span>${fmt(lngA)}원 (${lngRecs.length}일 / 목표 ${lng}일)</span><span>목표 ${fmt(lngGT)}원</span></div>`
+}
 
-      // ── CSV ───────────────────────────────────────────
-      window.exportCSV = function () {
-        const from = tFrom.value,
-          to = tTo.value;
-        const recs = getRecords().filter((r) => r.date >= from && r.date <= to);
-        if (!recs.length) {
-          toast("내보낼 데이터가 없습니다");
-          return;
-        }
-        const csv =
-          "\uFEFF날짜,카카오T,카드,현금,합계,메모\n" +
-          recs
-            .map((r) =>
-              [r.date, r.kakao, r.card, r.cash, r.total, r.memo || ""].join(
-                ",",
-              ),
-            )
-            .join("\n");
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(
-          new Blob([csv], { type: "text/csv;charset=utf-8" }),
-        );
-        a.download = "택시매출_" + from + "_" + to + ".csv";
-        a.click();
-        toast("CSV 저장됐습니다!");
-      };
-    </script>
-  </body>
+// ── CSV ───────────────────────────────────────────
+window.exportCSV = function(){
+  const from=tFrom.value,to=tTo.value
+  const recs=getRecords().filter(r=>r.date>=from&&r.date<=to)
+  if(!recs.length){toast('내보낼 데이터가 없습니다');return}
+  const csv='\uFEFF날짜,카카오T,카드,현금,합계,메모\n'+
+    recs.map(r=>[r.date,r.kakao,r.card,r.cash,r.total,r.memo||''].join(',')).join('\n')
+  const a=document.createElement('a')
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}))
+  a.download='택시매출_'+from+'_'+to+'.csv'
+  a.click()
+  toast('CSV 저장됐습니다!')
+}
+</script>
+</body>
 </html>
