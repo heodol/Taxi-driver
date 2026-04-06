@@ -1410,9 +1410,12 @@
         const cc = recs.reduce((a, r) => a + (+r.cardCnt || 0), 0);
         const hc = recs.reduce((a, r) => a + (+r.cashCnt || 0), 0);
         const totalCnt = kc + cc + hc;
-        document.getElementById("home-kakao").textContent = fmt(k) + (kc ? ` (${kc}건)` : "");
-        document.getElementById("home-card").textContent = fmt(c) + (cc ? ` (${cc}건)` : "");
-        document.getElementById("home-cash").textContent = fmt(h) + (hc ? ` (${hc}건)` : "");
+        document.getElementById("home-kakao").textContent =
+          fmt(k) + (kc ? ` (${kc}건)` : "");
+        document.getElementById("home-card").textContent =
+          fmt(c) + (cc ? ` (${cc}건)` : "");
+        document.getElementById("home-cash").textContent =
+          fmt(h) + (hc ? ` (${hc}건)` : "");
         document.getElementById("home-total").textContent =
           fmt(k + c + h) + "원" + (totalCnt ? ` (${totalCnt}건)` : "");
         // 요일별 평균 계산 (최근 30일)
