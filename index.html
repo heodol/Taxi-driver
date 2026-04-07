@@ -197,6 +197,21 @@
         display: block;
         margin-bottom: 5px;
       }
+      .drive-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 16px 0 6px;
+      }
+      .drive-status {
+        margin-top: 6px;
+        font-size: 13px;
+        color: #666;
+        text-align: center;
+      }
+      .list-card.pointer {
+        cursor: pointer;
+      }
       .field {
         margin-bottom: 14px;
       }
@@ -677,6 +692,26 @@
                 <div class="metric-value cash" id="home-cash">0</div>
               </div>
             </div>
+            <div class="drive-controls">
+              <button
+                class="btn primary"
+                id="start-drive-btn"
+                onclick="startDrive()"
+              >
+                운행 시작
+              </button>
+              <button
+                class="btn"
+                id="stop-drive-btn"
+                onclick="stopDrive()"
+                disabled
+              >
+                운행 종료
+              </button>
+            </div>
+            <div class="drive-status" id="drive-status">
+              운행 기록을 시작하려면 버튼을 눌러주세요.
+            </div>
           </div>
           <div class="shortcut" style="margin-bottom: 20px">
             <button class="shortcut-btn" onclick="go('input')">
@@ -931,6 +966,21 @@
             <button class="btn" onclick="renderList()">조회</button>
           </div>
           <div id="list-body"></div>
+        </div>
+
+        <!-- 경로 지도 -->
+        <div id="s-map" class="screen">
+          <div class="card">
+            <div class="card-title" id="map-title">운행 경로</div>
+            <button class="btn" onclick="go('list')">뒤로</button>
+          </div>
+          <div class="card" style="padding: 0; overflow: hidden">
+            <div
+              id="map-container"
+              style="width: 100%; height: 360px; background: #eee"
+            ></div>
+            <div class="drive-status" id="map-info">지도 로딩 중...</div>
+          </div>
         </div>
 
         <!-- 통계 -->
@@ -1333,7 +1383,14 @@
         list: "내역",
         stats: "통계",
         goal: "목표 설정",
+        map: "운행 경로",
       };
+
+      const GPS_STORAGE_KEY = "taxiGPSLogs";
+      let gpsLogs = loadGPSLogs();
+      let currentDrive = { timerId: null, date: null };
+      let googleMapsLoaded = false;
+      let googleMapsCallbacks = [];
 
       function fmt(n) {
         return Number(n).toLocaleString();
@@ -1359,6 +1416,204 @@
         el.textContent = msg;
         el.classList.add("show");
         setTimeout(() => el.classList.remove("show"), 2000);
+      }
+
+      function loadGPSLogs() {
+        try {
+          const raw = localStorage.getItem(GPS_STORAGE_KEY);
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+          return {};
+        }
+      }
+
+      function saveGPSLogs() {
+        try {
+          localStorage.setItem(GPS_STORAGE_KEY, JSON.stringify(gpsLogs));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      function getGPSLog(date) {
+        if (!gpsLogs[date]) {
+          gpsLogs[date] = { date, path: [], totalDistance: 0 };
+        }
+        return gpsLogs[date];
+      }
+
+      function distanceBetween(lat1, lng1, lat2, lng2) {
+        const toRad = (deg) => (deg * Math.PI) / 180;
+        const R = 6371;
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) *
+            Math.cos(toRad(lat2)) *
+            Math.sin(dLng / 2) *
+            Math.sin(dLng / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+      }
+
+      function updateDriveStatus() {
+        const status = document.getElementById("drive-status");
+        const startBtn = document.getElementById("start-drive-btn");
+        const stopBtn = document.getElementById("stop-drive-btn");
+        if (currentDrive.timerId) {
+          status.textContent = `${currentDrive.date} 운행 기록 중... 5분마다 위치가 저장됩니다.`;
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+        } else {
+          status.textContent = "운행 기록을 시작하려면 버튼을 눌러주세요.";
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+        }
+      }
+
+      function requestCurrentPosition(callback) {
+        if (!navigator.geolocation) {
+          toast("GPS를 지원하지 않는 기기입니다.");
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (position) => callback(position),
+          (error) => {
+            toast("위치 정보를 가져올 수 없습니다: " + error.message);
+          },
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
+        );
+      }
+
+      function recordCurrentLocation(date) {
+        requestCurrentPosition((position) => {
+          const log = getGPSLog(date);
+          const time = new Date().toTimeString().slice(0, 5);
+          const lat = Number(position.coords.latitude.toFixed(6));
+          const lng = Number(position.coords.longitude.toFixed(6));
+          const last = log.path[log.path.length - 1];
+          if (last) {
+            const dist = distanceBetween(last.lat, last.lng, lat, lng);
+            log.totalDistance =
+              Math.round((log.totalDistance + dist) * 10) / 10;
+          }
+          log.path.push({ time, lat, lng });
+          saveGPSLogs();
+          if (currentDrive.date === date) {
+            toast(`위치 기록됨: ${time}`);
+          }
+        });
+      }
+
+      function loadGoogleMapsAPI(callback) {
+        if (window.google && window.google.maps) {
+          callback();
+          return;
+        }
+        googleMapsCallbacks.push(callback);
+        if (document.getElementById("google-maps-api-script")) return;
+        window.__taxiRouteMapLoaded = function () {
+          googleMapsLoaded = true;
+          googleMapsCallbacks.forEach((cb) => cb());
+          googleMapsCallbacks = [];
+        };
+        const script = document.createElement("script");
+        script.id = "google-maps-api-script";
+        script.src =
+          "https://maps.googleapis.com/maps/api/js?key=AIzaSyDfKgkBudxgEqYPewjgH25hnGzGQLRifKk&callback=__taxiRouteMapLoaded";
+        script.async = true;
+        script.defer = true;
+        script.onerror = () => {
+          toast("Google Maps API 로딩에 실패했습니다. API 키를 확인해주세요.");
+        };
+        document.head.appendChild(script);
+      }
+
+      function renderRouteMap(log) {
+        const container = document.getElementById("map-container");
+        const info = document.getElementById("map-info");
+        if (!log || !log.path.length) {
+          container.innerHTML =
+            "<div class='empty'>운행 경로 기록이 없습니다.</div>";
+          info.textContent = "";
+          return;
+        }
+        const pathCoords = log.path.map((point) => ({
+          lat: point.lat,
+          lng: point.lng,
+        }));
+        const map = new google.maps.Map(container, {
+          center: pathCoords[0],
+          zoom: 14,
+          disableDefaultUI: true,
+        });
+        const bounds = new google.maps.LatLngBounds();
+        pathCoords.forEach((coord) => bounds.extend(coord));
+        const routeLine = new google.maps.Polyline({
+          path: pathCoords,
+          geodesic: true,
+          strokeColor: "#1a5fa8",
+          strokeOpacity: 0.9,
+          strokeWeight: 6,
+        });
+        routeLine.setMap(map);
+        new google.maps.Marker({ position: pathCoords[0], map, label: "출발" });
+        new google.maps.Marker({
+          position: pathCoords[pathCoords.length - 1],
+          map,
+          label: "도착",
+        });
+        map.fitBounds(bounds);
+        info.textContent = `총 ${log.path.length}회 기록 · ${log.totalDistance.toFixed(1)} km`;
+      }
+
+      window.startDrive = function () {
+        if (currentDrive.timerId) {
+          toast("이미 운행 중입니다.");
+          return;
+        }
+        if (!navigator.geolocation) {
+          toast("GPS를 지원하지 않는 기기입니다.");
+          return;
+        }
+        const date = today();
+        currentDrive.date = date;
+        recordCurrentLocation(date);
+        currentDrive.timerId = setInterval(
+          () => recordCurrentLocation(date),
+          5 * 60 * 1000,
+        );
+        updateDriveStatus();
+      };
+
+      window.stopDrive = function () {
+        if (!currentDrive.timerId) {
+          toast("현재 운행 중이 아닙니다.");
+          return;
+        }
+        clearInterval(currentDrive.timerId);
+        currentDrive.timerId = null;
+        currentDrive.date = null;
+        updateDriveStatus();
+        toast("운행 기록이 중단되었습니다.");
+      };
+
+      window.showRoute = function (date) {
+        const log = gpsLogs[date];
+        if (!log || !log.path.length) {
+          toast("해당 날짜의 운행 기록이 없습니다.");
+          return;
+        }
+        document.getElementById("map-title").textContent = `${date} 운행 경로`;
+        go("map");
+        loadGoogleMapsAPI(() => renderRouteMap(log));
+      };
+
+      function totalDistanceForRange(from, to) {
+        return Object.values(gpsLogs)
+          .filter((log) => log.date >= from && log.date <= to)
+          .reduce((sum, log) => sum + (log.totalDistance || 0), 0);
       }
 
       window.go = function (s) {
@@ -1577,6 +1832,8 @@
         document.getElementById(id).addEventListener("input", updateInputTotal),
       );
 
+      updateDriveStatus();
+
       window.resetRecord = function () {
         if (!confirm("입력 값을 모두 0으로 초기화하시겠습니까?")) return;
         [
@@ -1644,7 +1901,7 @@
         el.innerHTML = recs
           .map(
             (r) => `
-        <div class="list-card">
+        <div class="list-card pointer" onclick="showRoute('${r.date}')">
           <div><div class="list-date">${r.date}</div><div class="list-sub">${r.memo || ""}</div></div>
           <div style="text-align:right">
             <div class="list-amount">${fmt(r.total)}원 ${r.totalCnt ? '<span style="font-size:12px;color:#888;font-weight:400">' + r.totalCnt + "건</span>" : ""}</div>
@@ -1744,6 +2001,7 @@
         <div class="card-title">기간 합계 (${days}일)</div>
         <div class="stat-row"><span style="color:#888">총 매출</span><span style="font-weight:700">${fmt(total)}원</span></div>
         <div class="stat-row"><span style="color:#888">총 건수</span><span style="font-weight:700">${totalCnt ? totalCnt + "건" : "-"}</span></div>
+        <div class="stat-row"><span style="color:#888">운행 거리</span><span style="font-weight:700">${fmt(totalDistanceForRange(from, to).toFixed(1))} km</span></div>
         <div class="stat-row"><span style="color:#888">일 평균 매출</span><span style="font-weight:700">${fmt(avg)}원</span></div>
         <div class="stat-row"><span style="color:#888">일 평균 건수</span><span style="font-weight:700">${avgCnt ? avgCnt + "건" : "-"}</span></div>
         <div class="stat-row"><span style="color:#888">최고 매출일</span><span style="font-weight:700">${recs.reduce((a, r) => (r.total > a.total ? r : a), recs[0]).date}</span></div>
