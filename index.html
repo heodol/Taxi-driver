@@ -1601,20 +1601,61 @@
           lat: point.lat,
           lng: point.lng,
         }));
-        if (routeLine) {
-          routeLine.setMap(null);
-        }
-        routeLine = new google.maps.Polyline({
-          path: pathCoords,
-          geodesic: true,
-          strokeColor: "#1a5fa8",
-          strokeOpacity: 0.9,
-          strokeWeight: 6,
+
+        // DirectionsService를 사용하여 실제 도로 경로 계산
+        const directionsService = new google.maps.DirectionsService();
+        const directionsRenderer = new google.maps.DirectionsRenderer({
+          map: mapInstance,
+          suppressMarkers: true, // 기본 마커 숨김
+          polylineOptions: {
+            strokeColor: "#1a5fa8",
+            strokeOpacity: 0.9,
+            strokeWeight: 6,
+          },
         });
-        routeLine.setMap(mapInstance);
-        const bounds = new google.maps.LatLngBounds();
-        pathCoords.forEach((coord) => bounds.extend(coord));
-        mapInstance.fitBounds(bounds);
+
+        const waypoints = pathCoords.slice(1, -1).map((coord) => ({
+          location: coord,
+          stopover: false,
+        }));
+
+        const request = {
+          origin: pathCoords[0],
+          destination: pathCoords[pathCoords.length - 1],
+          waypoints: waypoints,
+          travelMode: google.maps.TravelMode.DRIVING,
+        };
+
+        directionsService.route(request, (result, status) => {
+          if (status === google.maps.DirectionsStatus.OK) {
+            directionsRenderer.setDirections(result);
+            const route = result.routes[0];
+            let totalDistance = 0;
+            route.legs.forEach((leg) => {
+              totalDistance += leg.distance.value / 1000; // 미터를 km로 변환
+            });
+            info.textContent = `총 ${log.path.length}회 기록 · 도로 거리: ${totalDistance.toFixed(1)} km`;
+          } else {
+            // Directions 실패 시 폴리라인으로 표시
+            if (routeLine) {
+              routeLine.setMap(null);
+            }
+            routeLine = new google.maps.Polyline({
+              path: pathCoords,
+              geodesic: true,
+              strokeColor: "#1a5fa8",
+              strokeOpacity: 0.9,
+              strokeWeight: 6,
+            });
+            routeLine.setMap(mapInstance);
+            const bounds = new google.maps.LatLngBounds();
+            pathCoords.forEach((coord) => bounds.extend(coord));
+            mapInstance.fitBounds(bounds);
+            info.textContent = `총 ${log.path.length}회 기록 · 직선 거리: ${log.totalDistance.toFixed(1)} km (도로 거리 계산 실패)`;
+          }
+        });
+
+        // 출발 및 도착 마커 추가
         new google.maps.Marker({
           position: pathCoords[0],
           map: mapInstance,
@@ -1625,7 +1666,6 @@
           map: mapInstance,
           label: "도착",
         });
-        info.textContent = `총 ${log.path.length}회 기록 · ${log.totalDistance.toFixed(1)} km`;
       }
 
       window.startDrive = function () {
@@ -1678,22 +1718,16 @@
           "현재 위치를 불러오는 중입니다...";
         loadGoogleMapsAPI(() => {
           const log = gpsLogs[date];
-          requestCurrentPosition((position) => {
-            const currentLocation = {
-              lat: Number(position.coords.latitude.toFixed(6)),
-              lng: Number(position.coords.longitude.toFixed(6)),
-            };
-            if (!log || !log.path.length) {
-              toast("해당 날짜의 운행 경로가 없습니다.");
-              renderRouteMap(null, currentLocation, currentLocation);
-              return;
-            }
-            const startPoint = {
-              lat: log.path[0].lat,
-              lng: log.path[0].lng,
-            };
-            renderRouteMap(log, startPoint, currentLocation);
-          });
+          if (!log || !log.path.length) {
+            toast("해당 날짜의 운행 경로가 없습니다.");
+            renderRouteMap(null, { lat: 37.5665, lng: 126.978 }, null); // 서울 시청 기본 위치
+            return;
+          }
+          const startPoint = {
+            lat: log.path[0].lat,
+            lng: log.path[0].lng,
+          };
+          renderRouteMap(log, startPoint, null);
         });
       };
 
