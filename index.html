@@ -720,7 +720,7 @@
             <button class="shortcut-btn" onclick="go('stats')">
               <span class="shortcut-icon">📊</span>통계 보기
             </button>
-            <button class="shortcut-btn" onclick="showRoute(today())">
+            <button class="shortcut-btn" onclick="go('list')">
               <span class="shortcut-icon">🗺️</span>운행 기록 보기
             </button>
           </div>
@@ -1970,21 +1970,21 @@
           dowData[dow].cnt += +r.totalCnt || 0;
           dowData[dow].days++;
         });
-        const maxAvgTotal = Math.max(
-          ...dowData.map((d) => (d.days ? Math.round(d.total / d.days) : 0)),
+        const maxTotal = Math.max(
+          ...dowData.map((d) => d.total),
           1,
         );
         const dowBars = dowData
           .map((d, i) => {
-            const avgT = d.days ? Math.round(d.total / d.days) : 0;
-            const avgC = d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0;
-            const w = Math.round((avgT / maxAvgTotal) * 100);
+            const totalT = d.total;
+            const totalC = d.cnt;
+            const w = Math.round((totalT / maxTotal) * 100);
             const color = i === 0 ? "#E24B4A" : i === 6 ? "#1a5fa8" : "#2d7a1f";
             return `<div class="bar-item">
           <div class="bar-label">
             <span style="font-weight:600;color:${color};width:20px;display:inline-block">${dowNames[i]}</span>
             <span style="color:#888;font-size:11px">${d.days}일 운행</span>
-            <span>${avgT ? fmt(avgT) + "원" : "휴무"} ${d.cnt + "건"}</span>
+            <span>${totalT ? fmt(totalT) + "원" : "휴무"} ${totalC + "건"}</span>
           </div>
           <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
         </div>`;
@@ -2010,7 +2010,7 @@
         </div>
       </div>
       <div class="card">
-        <div class="card-title">요일별 평균 매출·총건수</div>
+        <div class="card-title">요일별 합계 매출·총건수</div>
         <div style="margin-top:8px">${dowBars}</div>
         <div style="font-size:11px;color:#aaa;margin-top:8px;text-align:right">막대 = 평균 매출 기준</div>
       </div>`;
