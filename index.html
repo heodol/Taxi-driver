@@ -975,7 +975,35 @@
         <div id="s-map" class="screen">
           <div class="card">
             <div class="card-title" id="map-title">운행 경로</div>
-            <button class="btn" onclick="go('list')">뒤로</button>
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr auto;
+                gap: 8px;
+                align-items: center;
+              "
+            >
+              <input
+                type="date"
+                id="m-date"
+                style="
+                  padding: 12px 14px;
+                  border: 1.5px solid #e8e8e8;
+                  border-radius: 10px;
+                  width: 100%;
+                  font-family: inherit;
+                  font-size: 14px;
+                  color: #111;
+                "
+              />
+              <button
+                class="btn"
+                style="padding: 12px"
+                onclick="loadMapForSelectedDate()"
+              >
+                경로 보기
+              </button>
+            </div>
           </div>
           <div class="card" style="padding: 0; overflow: hidden">
             <div
@@ -1631,36 +1659,41 @@
         toast("운행 기록이 중단되었습니다.");
       };
 
+      function loadMapForSelectedDate() {
+        const date = document.getElementById("m-date").value;
+        if (!date) {
+          toast("날짜를 선택해주세요.");
+          return;
+        }
+        showRoute(date);
+      }
+
       window.showRoute = function (date) {
-        document.getElementById("map-title").textContent = date
-          ? `${date} 운행 경로`
-          : "운행 경로";
+        const title = date ? `${date} 운행 경로` : "운행 경로";
+        document.getElementById("map-title").textContent = title;
+        document.getElementById("m-date").value =
+          date || document.getElementById("m-date").value;
         go("map");
         document.getElementById("map-info").textContent =
           "현재 위치를 불러오는 중입니다...";
         loadGoogleMapsAPI(() => {
           const log = gpsLogs[date];
-          if (log && log.path.length) {
-            requestCurrentPosition((position) => {
-              const currentLocation = {
-                lat: Number(position.coords.latitude.toFixed(6)),
-                lng: Number(position.coords.longitude.toFixed(6)),
-              };
-              const startPoint = {
-                lat: log.path[0].lat,
-                lng: log.path[0].lng,
-              };
-              renderRouteMap(log, startPoint, currentLocation);
-            });
-          } else {
-            requestCurrentPosition((position) => {
-              const center = {
-                lat: Number(position.coords.latitude.toFixed(6)),
-                lng: Number(position.coords.longitude.toFixed(6)),
-              };
-              renderRouteMap(null, center, center);
-            });
-          }
+          requestCurrentPosition((position) => {
+            const currentLocation = {
+              lat: Number(position.coords.latitude.toFixed(6)),
+              lng: Number(position.coords.longitude.toFixed(6)),
+            };
+            if (!log || !log.path.length) {
+              toast("해당 날짜의 운행 경로가 없습니다.");
+              renderRouteMap(null, currentLocation, currentLocation);
+              return;
+            }
+            const startPoint = {
+              lat: log.path[0].lat,
+              lng: log.path[0].lng,
+            };
+            renderRouteMap(log, startPoint, currentLocation);
+          });
         });
       };
 
@@ -1934,6 +1967,8 @@
         lTo = document.getElementById("l-to");
       lFrom.value = monthStart();
       lTo.value = today();
+      const mDate = document.getElementById("m-date");
+      if (mDate) mDate.value = today();
 
       window.renderList = function () {
         const from = lFrom.value,
