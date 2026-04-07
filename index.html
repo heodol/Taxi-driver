@@ -729,11 +729,11 @@
             <div id="home-achieve"></div>
           </div>
           <div class="card" id="home-dow-sales-card">
-            <div class="card-title">요일별 평균 매출</div>
+            <div class="card-title">요일별 합계 매출</div>
             <div id="home-dow-sales-body"></div>
           </div>
           <div class="card" id="home-dow-count-card">
-            <div class="card-title">요일별 평균 건수</div>
+            <div class="card-title">요일별 합계 건수</div>
             <div id="home-dow-count-body"></div>
           </div>
         </div>
@@ -1691,26 +1691,18 @@
           dowData[dow].cnt += +r.totalCnt || 0;
           dowData[dow].days++;
         });
-        const maxAvgTotal = Math.max(
-          ...dowData.map((d) => (d.days ? Math.round(d.total / d.days) : 0)),
-          1,
-        );
-        const maxAvgCount = Math.max(
-          ...dowData.map((d) =>
-            d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0,
-          ),
-          1,
-        );
+        const maxTotal = Math.max(...dowData.map((d) => d.total), 1);
+        const maxTotalCount = Math.max(...dowData.map((d) => d.cnt), 1);
         const dowBarsSales = dowData
           .map((d, i) => {
-            const avgT = d.days ? Math.round(d.total / d.days) : 0;
-            const w = Math.round((avgT / maxAvgTotal) * 100);
+            const totalT = d.total;
+            const w = Math.round((totalT / maxTotal) * 100);
             const color = i === 0 ? "#E24B4A" : i === 6 ? "#1a5fa8" : "#2d7a1f";
             return `<div class="bar-item">
                 <div class="bar-label">
                   <span style="font-weight:600;color:${color};width:20px;display:inline-block">${DAY_NAMES[i]}</span>
                   <span style="color:#888;font-size:11px">${d.days}일 운행</span>
-                  <span>${d.days ? fmt(avgT) + "원" : "없음"}</span>
+                  <span>${d.days ? fmt(totalT) + "원" : "없음"}</span>
                 </div>
                 <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
               </div>`;
@@ -1718,14 +1710,14 @@
           .join("");
         const dowBarsCount = dowData
           .map((d, i) => {
-            const avgC = d.days ? Math.round((d.cnt / d.days) * 10) / 10 : 0;
-            const w = Math.round((avgC / maxAvgCount) * 100);
+            const totalC = d.cnt;
+            const w = Math.round((totalC / maxTotalCount) * 100);
             const color = i === 0 ? "#E24B4A" : i === 6 ? "#1a5fa8" : "#2d7a1f";
             return `<div class="bar-item">
                 <div class="bar-label">
                   <span style="font-weight:600;color:${color};width:20px;display:inline-block">${DAY_NAMES[i]}</span>
                   <span style="color:#888;font-size:11px">${d.days}일 운행</span>
-                  <span>${d.days ? avgC + "건" : "없음"}</span>
+                  <span>${d.days ? totalC + "건" : "없음"}</span>
                 </div>
                 <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
               </div>`;
