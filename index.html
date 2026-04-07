@@ -1699,14 +1699,14 @@
         toast("운행 기록이 중단되었습니다.");
       };
 
-      function loadMapForSelectedDate() {
+      window.loadMapForSelectedDate = function () {
         const date = document.getElementById("m-date").value;
         if (!date) {
           toast("날짜를 선택해주세요.");
           return;
         }
         showRoute(date);
-      }
+      };
 
       window.showRoute = function (date) {
         const title = date ? `${date} 운행 경로` : "운행 경로";
