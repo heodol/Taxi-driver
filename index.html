@@ -173,7 +173,7 @@
       }
       .shortcut {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, 1fr);
         gap: 10px;
         margin-top: 4px;
       }
@@ -719,6 +719,9 @@
             </button>
             <button class="shortcut-btn" onclick="go('stats')">
               <span class="shortcut-icon">📊</span>통계 보기
+            </button>
+            <button class="shortcut-btn" onclick="go('list')">
+              <span class="shortcut-icon">🗺️</span>운행 기록 보기
             </button>
           </div>
           <div class="card" id="home-goal-card" style="display: none">
@@ -1989,7 +1992,7 @@
           <div class="bar-label">
             <span style="font-weight:600;color:${color};width:20px;display:inline-block">${dowNames[i]}</span>
             <span style="color:#888;font-size:11px">${d.days}일 운행</span>
-            <span>${avgT ? fmt(avgT) + "원" : "휴무"} ${avgC ? avgC + "건" : ""}</span>
+            <span>${avgT ? fmt(avgT) + "원" : "휴무"} ${d.cnt ? d.cnt + "건" : ""}</span>
           </div>
           <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
         </div>`;
@@ -2015,7 +2018,7 @@
         </div>
       </div>
       <div class="card">
-        <div class="card-title">요일별 평균 매출·건수</div>
+        <div class="card-title">요일별 평균 매출·총건수</div>
         <div style="margin-top:8px">${dowBars}</div>
         <div style="font-size:11px;color:#aaa;margin-top:8px;text-align:right">막대 = 평균 매출 기준</div>
       </div>`;
