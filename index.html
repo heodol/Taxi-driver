@@ -1549,21 +1549,24 @@
         } else {
           mapInstance.setCenter(center);
         }
-        if (currentLocationMarker) {
-          currentLocationMarker.setMap(null);
-        }
-        currentLocationMarker = new google.maps.Marker({
-          position: center,
-          map: mapInstance,
-          label: "내 위치",
-        });
       }
 
-      function renderRouteMap(log, center) {
+      function renderRouteMap(log, center, currentLocation) {
         const info = document.getElementById("map-info");
         initMap(center);
+        if (currentLocation) {
+          if (currentLocationMarker) {
+            currentLocationMarker.setMap(null);
+          }
+          currentLocationMarker = new google.maps.Marker({
+            position: currentLocation,
+            map: mapInstance,
+            label: "내 위치",
+          });
+        }
         if (!log || !log.path.length) {
-          info.textContent = "운행 경로 기록이 없습니다. 현재 위치를 표시합니다.";
+          info.textContent =
+            "운행 경로 기록이 없습니다. 현재 위치를 표시합니다.";
           return;
         }
         const pathCoords = log.path.map((point) => ({
@@ -1584,7 +1587,11 @@
         const bounds = new google.maps.LatLngBounds();
         pathCoords.forEach((coord) => bounds.extend(coord));
         mapInstance.fitBounds(bounds);
-        new google.maps.Marker({ position: pathCoords[0], map: mapInstance, label: "출발" });
+        new google.maps.Marker({
+          position: pathCoords[0],
+          map: mapInstance,
+          label: "출발",
+        });
         new google.maps.Marker({
           position: pathCoords[pathCoords.length - 1],
           map: mapInstance,
@@ -1625,19 +1632,35 @@
       };
 
       window.showRoute = function (date) {
-        document.getElementById("map-title").textContent =
-          date ? `${date} 운행 경로` : "운행 경로";
+        document.getElementById("map-title").textContent = date
+          ? `${date} 운행 경로`
+          : "운행 경로";
         go("map");
-        document.getElementById("map-info").textContent = "현재 위치를 불러오는 중입니다...";
+        document.getElementById("map-info").textContent =
+          "현재 위치를 불러오는 중입니다...";
         loadGoogleMapsAPI(() => {
-          requestCurrentPosition((position) => {
-            const center = {
-              lat: Number(position.coords.latitude.toFixed(6)),
-              lng: Number(position.coords.longitude.toFixed(6)),
-            };
-            const log = gpsLogs[date];
-            renderRouteMap(log, center);
-          });
+          const log = gpsLogs[date];
+          if (log && log.path.length) {
+            requestCurrentPosition((position) => {
+              const currentLocation = {
+                lat: Number(position.coords.latitude.toFixed(6)),
+                lng: Number(position.coords.longitude.toFixed(6)),
+              };
+              const startPoint = {
+                lat: log.path[0].lat,
+                lng: log.path[0].lng,
+              };
+              renderRouteMap(log, startPoint, currentLocation);
+            });
+          } else {
+            requestCurrentPosition((position) => {
+              const center = {
+                lat: Number(position.coords.latitude.toFixed(6)),
+                lng: Number(position.coords.longitude.toFixed(6)),
+              };
+              renderRouteMap(null, center, center);
+            });
+          }
         });
       };
 
