@@ -319,6 +319,15 @@
         gap: 8px;
         margin-top: 8px;
       }
+      .map-controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin: 12px 0 8px;
+      }
+      .map-controls .btn {
+        width: 100%;
+      }
       .list-card {
         background: #fff;
         border-radius: 12px;
@@ -1006,6 +1015,10 @@
             </div>
           </div>
           <div class="card" style="padding: 0; overflow: hidden">
+            <div class="map-controls" style="padding: 12px;">
+              <button class="btn" onclick="zoomMapOut()" style="padding: 12px;">- 축소</button>
+              <button class="btn" onclick="zoomMapIn()" style="padding: 12px;">+ 확대</button>
+            </div>
             <div
               id="map-container"
               style="width: 100%; height: 360px; background: #eee"
@@ -1578,6 +1591,24 @@
           mapInstance.setCenter(center);
         }
       }
+
+      window.zoomMapIn = function () {
+        if (!mapInstance) {
+          toast("지도가 아직 준비되지 않았습니다.");
+          return;
+        }
+        const nextZoom = Math.min(mapInstance.getZoom() + 1, 20);
+        mapInstance.setZoom(nextZoom);
+      };
+
+      window.zoomMapOut = function () {
+        if (!mapInstance) {
+          toast("지도가 아직 준비되지 않았습니다.");
+          return;
+        }
+        const nextZoom = Math.max(mapInstance.getZoom() - 1, 3);
+        mapInstance.setZoom(nextZoom);
+      };
 
       function renderRouteMap(log, center, currentLocation) {
         const info = document.getElementById("map-info");
