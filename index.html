@@ -1401,6 +1401,7 @@
       function today() {
         return new Date().toISOString().slice(0, 10);
       }
+      window.today = today;
       function monthStart() {
         return today().slice(0, 7) + "-01";
       }
@@ -1970,10 +1971,7 @@
           dowData[dow].cnt += +r.totalCnt || 0;
           dowData[dow].days++;
         });
-        const maxTotal = Math.max(
-          ...dowData.map((d) => d.total),
-          1,
-        );
+        const maxTotal = Math.max(...dowData.map((d) => d.total), 1);
         const dowBars = dowData
           .map((d, i) => {
             const totalT = d.total;
