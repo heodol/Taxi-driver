@@ -1534,41 +1534,62 @@
         document.head.appendChild(script);
       }
 
-      function renderRouteMap(log) {
+      let mapInstance = null;
+      let routeLine = null;
+      let currentLocationMarker = null;
+
+      function initMap(center) {
         const container = document.getElementById("map-container");
+        if (!mapInstance) {
+          mapInstance = new google.maps.Map(container, {
+            center,
+            zoom: 14,
+            disableDefaultUI: true,
+          });
+        } else {
+          mapInstance.setCenter(center);
+        }
+        if (currentLocationMarker) {
+          currentLocationMarker.setMap(null);
+        }
+        currentLocationMarker = new google.maps.Marker({
+          position: center,
+          map: mapInstance,
+          label: "내 위치",
+        });
+      }
+
+      function renderRouteMap(log, center) {
         const info = document.getElementById("map-info");
+        initMap(center);
         if (!log || !log.path.length) {
-          container.innerHTML =
-            "<div class='empty'>운행 경로 기록이 없습니다.</div>";
-          info.textContent = "";
+          info.textContent = "운행 경로 기록이 없습니다. 현재 위치를 표시합니다.";
           return;
         }
         const pathCoords = log.path.map((point) => ({
           lat: point.lat,
           lng: point.lng,
         }));
-        const map = new google.maps.Map(container, {
-          center: pathCoords[0],
-          zoom: 14,
-          disableDefaultUI: true,
-        });
-        const bounds = new google.maps.LatLngBounds();
-        pathCoords.forEach((coord) => bounds.extend(coord));
-        const routeLine = new google.maps.Polyline({
+        if (routeLine) {
+          routeLine.setMap(null);
+        }
+        routeLine = new google.maps.Polyline({
           path: pathCoords,
           geodesic: true,
           strokeColor: "#1a5fa8",
           strokeOpacity: 0.9,
           strokeWeight: 6,
         });
-        routeLine.setMap(map);
-        new google.maps.Marker({ position: pathCoords[0], map, label: "출발" });
+        routeLine.setMap(mapInstance);
+        const bounds = new google.maps.LatLngBounds();
+        pathCoords.forEach((coord) => bounds.extend(coord));
+        mapInstance.fitBounds(bounds);
+        new google.maps.Marker({ position: pathCoords[0], map: mapInstance, label: "출발" });
         new google.maps.Marker({
           position: pathCoords[pathCoords.length - 1],
-          map,
+          map: mapInstance,
           label: "도착",
         });
-        map.fitBounds(bounds);
         info.textContent = `총 ${log.path.length}회 기록 · ${log.totalDistance.toFixed(1)} km`;
       }
 
@@ -1604,14 +1625,20 @@
       };
 
       window.showRoute = function (date) {
-        const log = gpsLogs[date];
-        if (!log || !log.path.length) {
-          toast("해당 날짜의 운행 기록이 없습니다.");
-          return;
-        }
-        document.getElementById("map-title").textContent = `${date} 운행 경로`;
+        document.getElementById("map-title").textContent =
+          date ? `${date} 운행 경로` : "운행 경로";
         go("map");
-        loadGoogleMapsAPI(() => renderRouteMap(log));
+        document.getElementById("map-info").textContent = "현재 위치를 불러오는 중입니다...";
+        loadGoogleMapsAPI(() => {
+          requestCurrentPosition((position) => {
+            const center = {
+              lat: Number(position.coords.latitude.toFixed(6)),
+              lng: Number(position.coords.longitude.toFixed(6)),
+            };
+            const log = gpsLogs[date];
+            renderRouteMap(log, center);
+          });
+        });
       };
 
       function totalDistanceForRange(from, to) {
