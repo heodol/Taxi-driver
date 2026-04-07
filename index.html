@@ -913,13 +913,10 @@
               <label>메모 (선택)</label>
               <input type="text" id="i-memo" placeholder="특이사항 입력" />
             </div>
-            <button
-              class="btn primary"
-              style="margin-top: 4px"
-              onclick="saveRecord()"
-            >
-              저장
-            </button>
+            <div class="btn-row" style="margin-top: 4px">
+              <button class="btn" onclick="resetRecord()">리셋</button>
+              <button class="btn primary" onclick="saveRecord()">저장</button>
+            </div>
           </div>
         </div>
 
@@ -1549,6 +1546,20 @@
           : "";
       }
 
+      function updateInputTotal() {
+        const k = +document.getElementById("i-kakao").value || 0;
+        const c = +document.getElementById("i-card").value || 0;
+        const h = +document.getElementById("i-cash").value || 0;
+        const kc = +document.getElementById("i-kakao-cnt").value || 0;
+        const cc = +document.getElementById("i-card-cnt").value || 0;
+        const hc = +document.getElementById("i-cash-cnt").value || 0;
+        document.getElementById("i-total").textContent = fmt(k + c + h) + "원";
+        const tc = kc + cc + hc;
+        document.getElementById("i-total-cnt").textContent = tc
+          ? "총 " + tc + "건"
+          : "";
+      }
+
       document.getElementById("i-date").value = today();
       loadExistingRecord(today());
 
@@ -1563,21 +1574,24 @@
         "i-card-cnt",
         "i-cash-cnt",
       ].forEach((id) =>
-        document.getElementById(id).addEventListener("input", () => {
-          const k = +document.getElementById("i-kakao").value || 0;
-          const c = +document.getElementById("i-card").value || 0;
-          const h = +document.getElementById("i-cash").value || 0;
-          const kc = +document.getElementById("i-kakao-cnt").value || 0;
-          const cc = +document.getElementById("i-card-cnt").value || 0;
-          const hc = +document.getElementById("i-cash-cnt").value || 0;
-          document.getElementById("i-total").textContent =
-            fmt(k + c + h) + "원";
-          const tc = kc + cc + hc;
-          document.getElementById("i-total-cnt").textContent = tc
-            ? "총 " + tc + "건"
-            : "";
-        }),
+        document.getElementById(id).addEventListener("input", updateInputTotal),
       );
+
+      window.resetRecord = function () {
+        if (!confirm("입력 값을 모두 0으로 초기화하시겠습니까?")) return;
+        [
+          "i-kakao",
+          "i-card",
+          "i-cash",
+          "i-kakao-cnt",
+          "i-card-cnt",
+          "i-cash-cnt",
+        ].forEach((id) => {
+          document.getElementById(id).value = 0;
+        });
+        document.getElementById("i-memo").value = "";
+        updateInputTotal();
+      };
 
       window.saveRecord = async function () {
         const date = document.getElementById("i-date").value;
