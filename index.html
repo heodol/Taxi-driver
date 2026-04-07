@@ -1602,9 +1602,15 @@
         const cardCnt = +document.getElementById("i-card-cnt").value || 0;
         const cashCnt = +document.getElementById("i-cash-cnt").value || 0;
         const memo = document.getElementById("i-memo").value.trim();
-        if (!kakao && !card && !cash) {
-          toast("금액을 입력해주세요");
-          return;
+        const total = kakao + card + cash;
+        if (!total) {
+          if (
+            !confirm(
+              "총 금액이 0원입니다. 이 상태로 저장하시겠습니까?",
+            )
+          ) {
+            return;
+          }
         }
         const totalCnt = kakaoCnt + cardCnt + cashCnt;
         const rec = {
@@ -1617,7 +1623,7 @@
           cashCnt,
           totalCnt,
           memo,
-          total: kakao + card + cash,
+          total,
         };
         await saveRecordToDB(rec);
         toast("저장됐습니다!");
