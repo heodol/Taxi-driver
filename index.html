@@ -1604,11 +1604,7 @@
         const memo = document.getElementById("i-memo").value.trim();
         const total = kakao + card + cash;
         if (!total) {
-          if (
-            !confirm(
-              "총 금액이 0원입니다. 이 상태로 저장하시겠습니까?",
-            )
-          ) {
+          if (!confirm("총 금액이 0원입니다. 이 상태로 저장하시겠습니까?")) {
             return;
           }
         }
