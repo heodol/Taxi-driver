@@ -1524,7 +1524,7 @@
         const script = document.createElement("script");
         script.id = "google-maps-api-script";
         script.src =
-          "https://maps.googleapis.com/maps/api/js?key=AIzaSyDfKgkBudxgEqYPewjgH25hnGzGQLRifKk&callback=__taxiRouteMapLoaded";
+          "https://maps.googleapis.com/maps/api/js?key=[키값]&callback=__taxiRouteMapLoaded";
         script.async = true;
         script.defer = true;
         script.onerror = () => {
@@ -1992,7 +1992,7 @@
           <div class="bar-label">
             <span style="font-weight:600;color:${color};width:20px;display:inline-block">${dowNames[i]}</span>
             <span style="color:#888;font-size:11px">${d.days}일 운행</span>
-            <span>${avgT ? fmt(avgT) + "원" : "휴무"} ${d.cnt ? d.cnt + "건" : ""}</span>
+            <span>${avgT ? fmt(avgT) + "원" : "휴무"} ${d.cnt + "건"}</span>
           </div>
           <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${color}"></div></div>
         </div>`;
