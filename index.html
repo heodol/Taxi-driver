@@ -1280,18 +1280,33 @@
       });
 
       // ── 인증 ──────────────────────────────────────────
-      window.loginWithGoogle = () => {
+      window.loginWithGoogle = async () => {
         const btn = document.getElementById("google-btn");
         btn.disabled = true;
         btn.innerHTML =
           '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" /> 로그인 중...';
         const provider = new GoogleAuthProvider();
-        signInWithRedirect(auth, provider).catch((error) => {
-          toast("로그인 실패: " + error.message);
-          btn.disabled = false;
-          btn.innerHTML =
-            '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" /> Google로 로그인';
-        });
+        try {
+          await signInWithPopup(auth, provider);
+        } catch (error) {
+          if (
+            error.code === "auth/popup-blocked" ||
+            error.code === "auth/cancelled-popup-request" ||
+            error.code === "auth/operation-not-supported-in-this-environment"
+          ) {
+            signInWithRedirect(auth, provider).catch((redirectError) => {
+              toast("로그인 실패: " + redirectError.message);
+              btn.disabled = false;
+              btn.innerHTML =
+                '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" /> Google로 로그인';
+            });
+          } else {
+            toast("로그인 실패: " + error.message);
+            btn.disabled = false;
+            btn.innerHTML =
+              '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" /> Google로 로그인';
+          }
+        }
       };
       window.logout = async () => {
         if (unsubRecords) unsubRecords();
@@ -1764,15 +1779,15 @@
       };
 
       window.showRoute = function (date) {
-        const title = date ? `${date} 운행 경로` : "운행 경로";
+        const selectedDate = date || today();
+        const title = `${selectedDate} 운행 경로`;
         document.getElementById("map-title").textContent = title;
-        document.getElementById("m-date").value =
-          date || document.getElementById("m-date").value;
+        document.getElementById("m-date").value = selectedDate;
         go("map");
         document.getElementById("map-info").textContent =
           "현재 위치를 불러오는 중입니다...";
         loadGoogleMapsAPI(() => {
-          const log = gpsLogs[date];
+          const log = gpsLogs[selectedDate];
           if (!log || !log.path.length) {
             toast("해당 날짜의 운행 경로가 없습니다.");
             renderRouteMap(null, { lat: 37.5665, lng: 126.978 }, null); // 서울 시청 기본 위치
