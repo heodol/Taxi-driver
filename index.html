@@ -328,6 +328,21 @@
       .map-controls .btn {
         width: 100%;
       }
+      .map-input-row {
+        display: grid;
+        grid-template-columns: 1fr minmax(110px, auto);
+        gap: 8px;
+        align-items: center;
+      }
+      .map-date-input {
+        padding: 12px 14px;
+        border: 1.5px solid #e8e8e8;
+        border-radius: 10px;
+        width: 100%;
+        font-family: inherit;
+        font-size: 14px;
+        color: #111;
+      }
       .list-card {
         background: #fff;
         border-radius: 12px;
@@ -984,30 +999,14 @@
         <div id="s-map" class="screen">
           <div class="card">
             <div class="card-title" id="map-title">운행 경로</div>
-            <div
-              style="
-                display: grid;
-                grid-template-columns: 1fr auto;
-                gap: 8px;
-                align-items: center;
-              "
-            >
+            <div class="map-input-row">
               <input
                 type="date"
                 id="m-date"
-                style="
-                  padding: 12px 14px;
-                  border: 1.5px solid #e8e8e8;
-                  border-radius: 10px;
-                  width: 100%;
-                  font-family: inherit;
-                  font-size: 14px;
-                  color: #111;
-                "
+                class="map-date-input"
               />
               <button
                 class="btn"
-                style="padding: 12px"
                 onclick="loadMapForSelectedDate()"
               >
                 경로 보기
@@ -1440,6 +1439,22 @@
       let googleMapsLoaded = false;
       let googleMapsCallbacks = [];
 
+      // Service Worker 등록 및 메시지 처리
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(registration => {
+          console.log('Service Worker registered');
+
+          // Service Worker로부터 메시지 수신
+          navigator.serviceWorker.addEventListener('message', event => {
+            if (event.data && event.data.type === 'RECORD_LOCATION') {
+              recordCurrentLocation(event.data.date);
+            }
+          });
+        }).catch(error => {
+          console.log('Service Worker registration failed:', error);
+        });
+      }
+
       function fmt(n) {
         return Number(n).toLocaleString();
       }
@@ -1724,6 +1739,29 @@
           5 * 60 * 1000,
         );
         updateDriveStatus();
+
+        // Service Worker에 백그라운드 추적 시작 알림
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'START_BACKGROUND_TRACKING',
+            date: date
+          });
+        }
+
+        // 백그라운드 감지 및 알림
+        document.addEventListener('visibilitychange', function() {
+          if (document.hidden && currentDrive.timerId) {
+            toast("앱이 백그라운드에 있습니다. Service Worker가 위치 기록을 유지합니다.");
+          }
+        });
+
+        // 주기적으로 타이머 상태 확인 (백그라운드 제한 우회)
+        setTimeout(() => {
+          if (currentDrive.timerId) {
+            recordCurrentLocation(date);
+            toast("위치 기록 재확인됨");
+          }
+        }, 10 * 60 * 1000); // 10분 후 재확인
       };
 
       window.stopDrive = function () {
@@ -1735,6 +1773,14 @@
         currentDrive.timerId = null;
         currentDrive.date = null;
         updateDriveStatus();
+
+        // Service Worker에 백그라운드 추적 중지 알림
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'STOP_BACKGROUND_TRACKING'
+          });
+        }
+
         toast("운행 기록이 중단되었습니다.");
       };
 
