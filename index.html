@@ -1512,6 +1512,36 @@
         } catch (e) {
           console.error(e);
         }
+        // Firebase에도 저장
+        if (currentUser) {
+          saveGPSLogToFirebase(currentUser.uid);
+        }
+      }
+
+      async function saveGPSLogToFirebase(uid) {
+        try {
+          const today = new Date().toISOString().slice(0, 10);
+          const log = gpsLogs[today];
+          if (!log) return;
+          await setDoc(doc(db, 'users', uid, 'gps', today), log);
+        } catch (e) {
+          console.error('GPS Firebase 저장 실패:', e);
+        }
+      }
+
+      async function loadGPSLogsFromFirebase(uid) {
+        try {
+          const snap = await getDocs(collection(db, 'users', uid, 'gps'));
+          const firebaseLogs = {};
+          snap.forEach(d => {
+            firebaseLogs[d.id] = d.data();
+          });
+          // Firebase 데이터와 localStorage 병합 (Firebase 우선)
+          gpsLogs = { ...gpsLogs, ...firebaseLogs };
+          localStorage.setItem(GPS_STORAGE_KEY, JSON.stringify(gpsLogs));
+        } catch (e) {
+          console.error('GPS Firebase 로드 실패:', e);
+        }
       }
 
       function getGPSLog(date) {
