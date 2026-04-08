@@ -1000,15 +1000,8 @@
           <div class="card">
             <div class="card-title" id="map-title">운행 경로</div>
             <div class="map-input-row">
-              <input
-                type="date"
-                id="m-date"
-                class="map-date-input"
-              />
-              <button
-                class="btn"
-                onclick="loadMapForSelectedDate()"
-              >
+              <input type="date" id="m-date" class="map-date-input" />
+              <button class="btn" onclick="loadMapForSelectedDate()">
                 경로 보기
               </button>
             </div>
@@ -1440,19 +1433,22 @@
       let googleMapsCallbacks = [];
 
       // Service Worker 등록 및 메시지 처리
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').then(registration => {
-          console.log('Service Worker registered');
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("sw.js")
+          .then((registration) => {
+            console.log("Service Worker registered");
 
-          // Service Worker로부터 메시지 수신
-          navigator.serviceWorker.addEventListener('message', event => {
-            if (event.data && event.data.type === 'RECORD_LOCATION') {
-              recordCurrentLocation(event.data.date);
-            }
+            // Service Worker로부터 메시지 수신
+            navigator.serviceWorker.addEventListener("message", (event) => {
+              if (event.data && event.data.type === "RECORD_LOCATION") {
+                recordCurrentLocation(event.data.date);
+              }
+            });
+          })
+          .catch((error) => {
+            console.log("Service Worker registration failed:", error);
           });
-        }).catch(error => {
-          console.log('Service Worker registration failed:', error);
-        });
       }
 
       function fmt(n) {
@@ -1709,16 +1705,16 @@
           }
         });
 
-        // 출발 및 도착 마커 추가
+        // 출발 및 도착 마커 추가 (시간 표시)
         new google.maps.Marker({
           position: pathCoords[0],
           map: mapInstance,
-          label: "출발",
+          label: log.path[0].time,
         });
         new google.maps.Marker({
           position: pathCoords[pathCoords.length - 1],
           map: mapInstance,
-          label: "도착",
+          label: log.path[log.path.length - 1].time,
         });
       }
 
@@ -1741,27 +1737,35 @@
         updateDriveStatus();
 
         // Service Worker에 백그라운드 추적 시작 알림
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        if (
+          "serviceWorker" in navigator &&
+          navigator.serviceWorker.controller
+        ) {
           navigator.serviceWorker.controller.postMessage({
-            type: 'START_BACKGROUND_TRACKING',
-            date: date
+            type: "START_BACKGROUND_TRACKING",
+            date: date,
           });
         }
 
         // 백그라운드 감지 및 알림
-        document.addEventListener('visibilitychange', function() {
+        document.addEventListener("visibilitychange", function () {
           if (document.hidden && currentDrive.timerId) {
-            toast("앱이 백그라운드에 있습니다. Service Worker가 위치 기록을 유지합니다.");
+            toast(
+              "앱이 백그라운드에 있습니다. Service Worker가 위치 기록을 유지합니다.",
+            );
           }
         });
 
         // 주기적으로 타이머 상태 확인 (백그라운드 제한 우회)
-        setTimeout(() => {
-          if (currentDrive.timerId) {
-            recordCurrentLocation(date);
-            toast("위치 기록 재확인됨");
-          }
-        }, 10 * 60 * 1000); // 10분 후 재확인
+        setTimeout(
+          () => {
+            if (currentDrive.timerId) {
+              recordCurrentLocation(date);
+              toast("위치 기록 재확인됨");
+            }
+          },
+          10 * 60 * 1000,
+        ); // 10분 후 재확인
       };
 
       window.stopDrive = function () {
@@ -1775,9 +1779,12 @@
         updateDriveStatus();
 
         // Service Worker에 백그라운드 추적 중지 알림
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        if (
+          "serviceWorker" in navigator &&
+          navigator.serviceWorker.controller
+        ) {
           navigator.serviceWorker.controller.postMessage({
-            type: 'STOP_BACKGROUND_TRACKING'
+            type: "STOP_BACKGROUND_TRACKING",
           });
         }
 
