@@ -1705,17 +1705,14 @@
           }
         });
 
-        // 출발 및 도착 마커 추가 (시간 표시)
-        new google.maps.Marker({
-          position: pathCoords[0],
-          map: mapInstance,
-          label: log.path[0].time,
-        });
-        new google.maps.Marker({
-          position: pathCoords[pathCoords.length - 1],
-          map: mapInstance,
-          label: log.path[log.path.length - 1].time,
-        });
+        // 20분 간격으로 시간 마커 추가 (5분 단위 로그이므로 4번째마다)
+        for (let i = 0; i < log.path.length; i += 4) {
+          new google.maps.Marker({
+            position: pathCoords[i],
+            map: mapInstance,
+            label: log.path[i].time,
+          });
+        }
       }
 
       window.startDrive = function () {
