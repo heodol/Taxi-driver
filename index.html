@@ -1669,32 +1669,7 @@
         pathCoords.forEach((coord) => bounds.extend(coord));
         mapInstance.fitBounds(bounds);
 
-        // Directions API로 거리 계산만 수행
-        const directionsService = new google.maps.DirectionsService();
-        const waypoints = pathCoords.slice(1, -1).map((coord) => ({
-          location: coord,
-          stopover: false,
-        }));
-
-        const request = {
-          origin: pathCoords[0],
-          destination: pathCoords[pathCoords.length - 1],
-          waypoints: waypoints,
-          travelMode: google.maps.TravelMode.DRIVING,
-        };
-
-        directionsService.route(request, (result, status) => {
-          if (status === google.maps.DirectionsStatus.OK) {
-            const route = result.routes[0];
-            let totalDistance = 0;
-            route.legs.forEach((leg) => {
-              totalDistance += leg.distance.value / 1000; // 미터를 km로 변환
-            });
-            info.textContent = `총 ${log.path.length}회 기록 · 도로 거리: ${totalDistance.toFixed(1)} km`;
-          } else {
-            info.textContent = `총 ${log.path.length}회 기록 · 직선 거리: ${log.totalDistance.toFixed(1)} km (도로 거리 계산 실패)`;
-          }
-        });
+        info.textContent = `총 ${log.path.length}회 기록 · 기록 거리: ${log.totalDistance.toFixed(1)} km`;
 
         // 20분 간격으로 시간 마커 추가 (5분 단위 로그이므로 4번째마다)
         for (let i = 0; i < log.path.length; i += 4) {
